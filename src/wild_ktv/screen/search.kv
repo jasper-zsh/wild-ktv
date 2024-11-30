@@ -1,0 +1,42 @@
+#:kivy 2.3.0
+#:import floor math.floor
+#:import ArtistCard wild_ktv.uix.artist
+<SearchScreen>:
+    ScrollView:
+        size_hint: 1, None
+        height: root.height
+        BoxLayout:
+            id: container
+            orientation: 'vertical'
+            height: self.minimum_height
+            size_hint: 1, None
+
+<ArtistSearchResult>:
+    orientation: 'vertical'
+    height: self.minimum_height
+    size_hint: 1, None
+    Label:
+        text: '歌手'
+        size: self.texture_size
+        size_hint: None, None
+    GridLayout:
+        id: container
+        height: self.minimum_height
+        size_hint: 1, None
+        cols: max(1, floor(self.width / 160))
+        spacing: 10
+
+<SongSearchResult>:
+    orientation: 'vertical'
+    height: self.minimum_height
+    size_hint: 1, None
+    Label:
+        text: '歌曲列表'
+        size: self.texture_size
+        size_hint: None, None
+    GridLayout:
+        id: container
+        height: self.minimum_height
+        size_hint: 1, None
+        cols: max(1, floor(self.width / 302))
+        spacing: 2

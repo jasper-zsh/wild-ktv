@@ -1,0 +1,15 @@
+#:kivy 2.3.0
+#:import ArtistCard wild_ktv.uix.artist
+#:import math math
+<ArtistScreen>:
+    recycle_view: recycle_view
+    RecycleView:
+        id: recycle_view
+        viewclass: 'ArtistCard'
+        RecycleGridLayout:
+            cols: max(1, math.floor(self.width / 160))
+            spacing: 10
+            default_size: None, None
+            default_size_hint: None, None
+            size_hint_y: None
+            height: self.minimum_height

@@ -1,0 +1,10 @@
+#:kivy 2.3.0
+<TopBar>:
+    size_hint: (1, None)
+    height: 50
+    Button:
+        text: 'Back'
+        on_release: app.nav_back()
+    TextInput:
+        on_focus: root.on_search(args[0].text)
+        on_text: root.on_search(args[1])

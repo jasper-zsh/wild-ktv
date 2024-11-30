@@ -1,0 +1,18 @@
+#:kivy 2.3.0
+<ArtistCard>:
+    size_hint: None, None
+    size: 150, 50
+    padding: 20, 10
+    anchor_x: 'left'
+    anchor_y: 'center'
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 0.5
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [20]
+    Label:
+        text: root.artist.name if root.artist else ''
+        size: self.texture_size
+        size_hint: None, None
