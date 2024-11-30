@@ -19,8 +19,12 @@ class PlayerScreen(Screen):
     def on_kv_post(self, base_widget):
         app = App.get_running_app()
         app.bind(playlist=self.on_playlist_changed)
+        self.ids.video.bind(loaded=self.on_video_loaded)
     
     def on_playlist_changed(self, instance, value):
         logger.info(f'playlist changed: {value}')
         if len(value) > 0 and self.current_source != value[0]:
-            self.current_source = os.path.join(Config['data_root'], value[0].path)
+            self.current_source = os.path.join(Config['data_root'], value[0].path.replace('\\', os.path.sep))
+    
+    def on_video_loaded(self, instance, value):
+        logger.info(f'video loaded {value}')

@@ -24,6 +24,8 @@ colorama==0.4.6
     # via click
 docutils==0.21.2
     # via kivy
+ffpyplayer==4.5.2
+    # via wild-ktv
 flask==3.1.0
 greenlet==3.1.1
     # via sqlalchemy
@@ -41,6 +43,7 @@ kivy-deps-glew==0.3.1
     # via kivy
 kivy-deps-gstreamer==0.3.4
     # via kivy
+    # via wild-ktv
 kivy-deps-sdl2==0.7.0
     # via kivy
 kivy-garden==0.1.5
