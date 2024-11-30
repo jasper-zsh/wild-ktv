@@ -6,5 +6,5 @@
         text: 'Back'
         on_release: app.nav_back()
     TextInput:
-        on_focus: root.on_search(args[0].text)
+        on_focus: root.on_focus(args[1])
         on_text: root.on_search(args[1])
