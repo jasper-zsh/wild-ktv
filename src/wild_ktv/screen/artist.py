@@ -28,4 +28,4 @@ class ArtistScreen(Screen):
         async with async_session() as session:
             artists = (await session.scalars(select(Artist).order_by(Artist.pinyin_head).limit(100))).all()
             logger.info(f'Got {len(artists)} artists')
-            self.recycle_view.data = [{'artist': artist} for artist in artists]
+            self.recycle_view.data = [ArtistCard.build_data(artist) for artist in artists]

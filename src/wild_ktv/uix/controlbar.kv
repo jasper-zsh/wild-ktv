@@ -2,5 +2,6 @@
 <ControlBar>:
     size_hint: (1, None)
     height: 100
-    Label:
-        text: 'Control'
+    Button:
+        text: 'To Player' if root.player_screen_state == 'main' else 'To Main'
+        on_release: app.to_player() if root.player_screen_state == 'main' else app.to_main()

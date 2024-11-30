@@ -1,6 +1,6 @@
 import os
 from kivy.lang import Builder
-from kivy.app import ObjectProperty, StringProperty
+from kivy.properties import StringProperty, NumericProperty
 from kivy.uix.widget import Widget
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.anchorlayout import AnchorLayout
@@ -11,8 +11,18 @@ from wild_ktv.model import Artist
 Builder.load_file(os.path.join(os.path.dirname(__file__), 'artist.kv'))
 
 class ArtistCard(RecycleDataViewBehavior, AnchorLayout):
-    artist = ObjectProperty(None)
+    _id = NumericProperty()
+    name = StringProperty()
 
     def refresh_view_attrs(self, rv, index, data):
-        artist: Artist = data['artist']
+        self._id = data['_id']
+        self.name = data['name']
         return super().refresh_view_attrs(rv, index, data)
+    
+    @staticmethod
+    def build_data(artist: Artist):
+        return {
+            '_id': artist.id,
+            'name': artist.name,
+            'size': (150, 50),
+        }

@@ -2,7 +2,7 @@ import os
 import asyncio
 import logging
 from kivy.lang import Builder
-from kivy.app import ObjectProperty, StringProperty
+from kivy.app import App, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button, ButtonBehavior
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
@@ -23,3 +23,5 @@ class SongCard(RecycleDataViewBehavior, ButtonBehavior, BoxLayout):
     
     def on_release(self):
         logger.info(f'Pressed {self.song.id} {self.song.name}')
+        app = App.get_running_app()
+        app.add_to_playlist(self.song)
