@@ -49,32 +49,32 @@ class SearchScreen(Screen):
                 .limit(50)
             )).all()
             logger.info(f'Got songs: {songs}')
-            await self.rebuild(artists, songs)
+            self.rebuild(artists, songs)
     
-    async def rebuild(self, artists: list[Artist], songs: list[Song]):
+    def rebuild(self, artists: list[Artist], songs: list[Song]):
         self.ids.container.clear_widgets()
-        artists_widget = await self.build_artists(artists)
+        artists_widget = self.build_artists(artists)
         if artists_widget:
             self.ids.container.add_widget(artists_widget)
-        songs_widget = await self.build_songs(songs)
+        songs_widget = self.build_songs(songs)
         if songs_widget:
             self.ids.container.add_widget(songs_widget)
 
-    async def build_artists(self, artists: list[Artist]):
+    def build_artists(self, artists: list[Artist]):
         if not artists:
             return None
         widget = ArtistSearchResult()
         for artist in artists:
-            card = ArtistCard(artist=artist)
+            card = ArtistCard(**ArtistCard.build_data(artist))
             widget.ids.container.add_widget(card)
         return widget
 
-    async def build_songs(self, songs: list[Song]):
+    def build_songs(self, songs: list[Song]):
         if not songs:
             return None
         widget = SongSearchResult()
         for song in songs:
-            card = SongCard(song=song)
+            card = SongCard(**SongCard.build_data(song))
             widget.ids.container.add_widget(card)
         return widget
 

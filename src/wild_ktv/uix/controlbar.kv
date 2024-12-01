@@ -2,6 +2,61 @@
 <ControlBar>:
     size_hint: (1, None)
     height: 100
-    Button:
-        text: 'To Player' if root.player_screen_state == 'main' else 'To Main'
-        on_release: app.to_player() if root.player_screen_state == 'main' else app.to_main()
+    orientation: 'vertical'
+    ProgressBar:
+        id: progress
+    BoxLayout:
+        Button:
+            size: 50, 50
+            size_hint: None, None
+            text: '播放器' if root.player_screen_state == 'main' else '菜单'
+            on_release: app.to_player() if root.player_screen_state == 'main' else app.to_main()
+        BoxLayout:
+            orientation: 'vertical'
+            Label:
+                text: root.song_name
+                width: self.texture_size[0]
+                size_hint_x: None
+            Label:
+                text: root.song_artist
+                width: self.texture_size[0]
+                size_hint_x: None
+        Button:
+            size: 50, 50
+            size_hint: None, None
+            text: '播放'
+            on_release: app.video.state = 'play' if app.video.state == 'pause' else 'pause'
+        Button:
+            size: 50, 50
+            size_hint: None, None
+            text: '切歌'
+            on_release: app.video.seek(100)
+        Label:
+            text: '音量'
+            width: self.texture_size[0]
+            size_hint_x: None
+        Slider:
+            id: volume
+            width: 100
+            size_hint_x: None
+            disabled: True
+            min: 0
+            max: 100
+        Button:
+            size: 50, 50
+            size_hint: None, None
+            text: '重唱'
+            on_release: app.video.seek(0)
+        Button:
+            size: 50, 50
+            size_hint: None, None
+            text: '已点'
+            on_release: app.playlist_modal.open()
+        Label:
+            text: '原唱' if app.orig else '伴唱'
+            width: self.texture_size[0]
+            size_hint_x: None
+        Switch:
+            id: chk_orig
+            active: app.orig
+            size_hint_x: None

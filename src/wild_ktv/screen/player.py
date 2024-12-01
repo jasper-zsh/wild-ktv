@@ -3,11 +3,11 @@ import logging
 
 from kivy.lang import Builder
 from kivy.app import App
-from kivy.properties import StringProperty
+from kivy.properties import StringProperty, BooleanProperty
 from kivy.uix.screenmanager import Screen
-from kivy.uix.video import Video
 
 from wild_ktv.config import Config
+from wild_ktv.uix.video import EnhancedVideo
 
 logger = logging.getLogger(__name__)
 
@@ -15,16 +15,11 @@ Builder.load_file(os.path.join(os.path.dirname(__file__), 'player.kv'))
 
 class PlayerScreen(Screen):
     current_source = StringProperty()
+    orig = BooleanProperty(True)
+    video: EnhancedVideo
 
     def on_kv_post(self, base_widget):
         app = App.get_running_app()
-        app.bind(playlist=self.on_playlist_changed)
-        self.ids.video.bind(loaded=self.on_video_loaded)
+        self.video = app.video
+        self.ids.container.add_widget(self.video, 1)
     
-    def on_playlist_changed(self, instance, value):
-        logger.info(f'playlist changed: {value}')
-        if len(value) > 0 and self.current_source != value[0]:
-            self.current_source = os.path.join(Config['data_root'], value[0].path.replace('\\', os.path.sep))
-    
-    def on_video_loaded(self, instance, value):
-        logger.info(f'video loaded {value}')

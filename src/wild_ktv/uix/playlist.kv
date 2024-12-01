@@ -1,0 +1,38 @@
+#:kivy 2.3.0
+<Playlist>:
+    size_hint: 0.6, 0.6
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        Label:
+            text: '已点'
+            size: self.texture_size
+            size_hint: None, None
+        RecycleView:
+            id: rv
+            viewclass: 'PlaylistItem'
+            RecycleBoxLayout:
+                orientation: 'vertical'
+                default_size: None, None
+                default_size_hint: 1, None
+                size_hint_y: None
+                height: self.minimum_height
+
+<PlaylistItem>:
+    height: 40
+    size_hint_y: None
+    Label:
+        text: root.name
+    Label:
+        text: root.artist
+    Button:
+        text: '置顶'
+        width: 50
+        size_hint_x: None
+        on_release: root.set_to_top()
+    Button:
+        text: '删除'
+        width: 50
+        size_hint_x: None
+        on_release: root.remove()
+    

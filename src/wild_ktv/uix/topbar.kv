@@ -6,5 +6,8 @@
         text: 'Back'
         on_release: app.nav_back()
     TextInput:
+        id: keyword
         on_focus: root.on_focus(args[1])
-        on_text: root.on_search(args[1])
+    Button:
+        text: 'Search'
+        on_release: root.on_search(keyword.text)

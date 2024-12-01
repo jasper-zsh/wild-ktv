@@ -1,8 +1,11 @@
 #:kivy 2.3.0
 #:import MainScreen wild_ktv.screen.main.MainScreen
 #:import PlayerScreen wild_ktv.screen.player.PlayerScreen
+#:import FadeTransition kivy.uix.screenmanager.FadeTransition
+
 ScreenManager:
     id: main_screen_manager
+    transition: FadeTransition()
     MainScreen:
         id: main_screen
         name: 'main'

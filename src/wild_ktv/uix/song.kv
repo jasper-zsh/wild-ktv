@@ -11,17 +11,17 @@
             pos: self.pos
             size: self.size
     Label:
-        text: root.song.name if root.song else ''
+        text: root.name
         size: self.texture_size
         size_hint: None, None
         font_size: 20
     Label:
-        text: '/'.join([artist.name for artist in root.song.artists]) if root.song else ''
+        text: root.artist
         size: self.texture_size
         size_hint: None, None
         font_size: 15
     Label:
-        text: ' '.join([tag.name for tag in root.song.tags]) if root.song else ''
+        text: root.tags
         size: self.texture_size
         size_hint: None, None
         font_size: 15

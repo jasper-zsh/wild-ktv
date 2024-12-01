@@ -1,21 +1,18 @@
 #:kivy 2.3.0
-#:import ArtistCard wild_ktv.uix.artist
-#:import math math
-<ArtistScreen>:
-    recycle_view: recycle_view
+<ArtistSongsScreen>:
     ScrollView:
         BoxLayout:
             orientation: 'vertical'
             Label:
-                text: '歌手'
+                text: root.artist_name
                 size: self.texture_size
                 size_hint: None, None
             RecycleView:
-                id: recycle_view
-                viewclass: 'ArtistCard'
+                id: rv
+                viewclass: 'SongCard'
                 RecycleGridLayout:
                     key_size: 'size'
-                    cols: max(1, math.floor(self.width / 160))
+                    cols: max(1, floor(self.width / 302))
                     spacing: 10
                     default_size: None, None
                     default_size_hint: None, None

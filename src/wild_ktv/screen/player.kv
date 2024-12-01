@@ -1,9 +1,9 @@
 #:kivy 2.3.0
 #:import ControlBar wild_ktv.uix.controlbar.ControlBar
+#:import EnhancedVideo wild_ktv.uix.video.EnhancedVideo
 <PlayerScreen>:
-    Video:
-        id: video
-        play: True
-        source: root.current_source
-    ControlBar:
-        main_screen_manager: app.main_screen_manager
+    BoxLayout:
+        id: container
+        orientation: 'vertical'
+        ControlBar:
+            main_screen_manager: app.main_screen_manager
