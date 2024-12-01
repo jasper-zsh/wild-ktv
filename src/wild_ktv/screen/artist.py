@@ -1,7 +1,10 @@
 import os
 import logging
 import asyncio
+from functools import partial
+
 from kivy.lang import Builder
+from kivy.app import App
 from kivy.app import ObjectProperty
 from kivy.uix.screenmanager import Screen
 from kivy.uix.recycleview import RecycleView
@@ -32,4 +35,11 @@ class ArtistScreen(Screen):
                 # .limit(100)
             )).all()
             logger.info(f'Got {len(artists)} artists')
-            self.recycle_view.data = [ArtistCard.build_data(artist) for artist in artists]
+            self.recycle_view.data = [ArtistCard.build_data(artist, on_release=partial(self.on_artist_clicked, artist)) for artist in artists]
+    
+    def on_artist_clicked(self, artist: Artist, *args):
+        logger.info(f'Clicked artist {artist.id} {artist.name}')
+        app = App.get_running_app()
+        screen = app.screen_manager.get_screen('artist_songs')
+        screen.artist_id = artist.id
+        app.nav_push(screen.name)

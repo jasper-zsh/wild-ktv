@@ -26,16 +26,12 @@ class SongCard(RecycleDataViewBehavior, ButtonBehavior, BoxLayout):
         return super().refresh_view_attrs(rv, index, data)
     
     @staticmethod
-    def build_data(song: Song):
+    def build_data(song: Song, on_release=lambda: None):
         return {
+            'on_release': on_release,
             'size': (300, 100),
             'song': song,
             'name': song.name,
             'artist': '/'.join([artist.name for artist in song.artists]),
             'tags': ' '.join([tag.name for tag in song.tags]),
         }
-    
-    def on_release(self):
-        logger.info(f'Pressed {self.song.id} {self.song.name}')
-        app = App.get_running_app()
-        app.add_to_playlist(self.song)

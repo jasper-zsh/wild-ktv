@@ -4,8 +4,10 @@ import asyncio
 
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
+from functools import partial
 
 from kivy.lang import Builder
+from kivy.app import App
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.screenmanager import Screen
 
@@ -36,4 +38,9 @@ class ArtistSongsScreen(Screen):
                 .options(selectinload(Song.artists))
                 .options(selectinload(Song.tags))
             )).all()
-            self.ids.rv.data = [SongCard.build_data(song) for song in songs]
+            self.ids.rv.data = [SongCard.build_data(song, on_release=partial(self.on_song_clicked, song)) for song in songs]
+    
+    def on_song_clicked(self, song: Song):
+        logger.info(f'Song {song.id} {song.name} clicked')
+        app = App.get_running_app()
+        app.add_to_playlist(song)

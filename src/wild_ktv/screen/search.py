@@ -2,10 +2,12 @@ import os
 import logging
 import asyncio
 
+from functools import partial
 from sqlalchemy import select, or_
 from sqlalchemy.orm import joinedload, selectinload, subqueryload
 
 from kivy.lang import Builder
+from kivy.app import App
 from kivy.uix.screenmanager import Screen
 from kivy.uix.boxlayout import BoxLayout
 from wild_ktv.model import Artist, Song, async_session
@@ -65,7 +67,7 @@ class SearchScreen(Screen):
             return None
         widget = ArtistSearchResult()
         for artist in artists:
-            card = ArtistCard(**ArtistCard.build_data(artist))
+            card = ArtistCard(**ArtistCard.build_data(artist, on_release=partial(self.on_artist_clicked, artist)))
             widget.ids.container.add_widget(card)
         return widget
 
@@ -74,9 +76,21 @@ class SearchScreen(Screen):
             return None
         widget = SongSearchResult()
         for song in songs:
-            card = SongCard(**SongCard.build_data(song))
+            card = SongCard(**SongCard.build_data(song, on_release=partial(self.on_song_clicked, song)))
             widget.ids.container.add_widget(card)
         return widget
+    
+    def on_artist_clicked(self, artist: Artist, *args):
+        logger.info(f'Clicked artist {artist.id} {artist.name}')
+        app = App.get_running_app()
+        screen = app.screen_manager.get_screen('artist_songs')
+        screen.artist_id = artist.id
+        app.nav_push(screen.name)
+
+    def on_song_clicked(self, song: Song, *args):
+        logger.info(f'Song {song.id} {song.name} clicked')
+        app = App.get_running_app()
+        app.add_to_playlist(song)
 
 class ArtistSearchResult(BoxLayout):
     pass
