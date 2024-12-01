@@ -30,7 +30,7 @@
             size: 50, 50
             size_hint: None, None
             text: '切歌'
-            on_release: app.video.seek(100)
+            on_release: app.playlist = app.playlist[1:]
         Label:
             text: '音量'
             width: self.texture_size[0]

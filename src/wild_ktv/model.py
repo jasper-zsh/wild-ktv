@@ -10,9 +10,8 @@ session_factory = None
 def async_session():
     return session_factory()
 
-async def init(rootPath: str):
+async def init(db_path: str):
     global engine, session_factory
-    db_path = os.path.join(rootPath, 'ktv.sqlite3')
     engine = create_async_engine(f'sqlite+aiosqlite:///{db_path}', echo=False)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
     async with engine.begin() as conn:

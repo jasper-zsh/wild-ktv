@@ -67,14 +67,14 @@ class WildKTVApp(App):
         self.playlist = self.playlist[1:]
 
     def on_orig(self, instance, value):
-        pos = self.video.position
+        # pos = self.video.position
         if value:
             logger.info('set audio to orig.')
-            self.video.select_audio_track(1)
+            self.video.select_audio_track(0)
         else:
             logger.info('set audio to inst.')
-            self.video.select_audio_track(2)
-        self.video.seek(pos / self.video.duration)
+            self.video.select_audio_track(1)
+        # self.video.seek(pos / self.video.duration)
     
     def on_playlist(self, instance, value):
         logger.info(f'playlist changed: {value}')

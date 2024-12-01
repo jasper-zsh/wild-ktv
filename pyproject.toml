@@ -11,6 +11,7 @@ dependencies = [
     "aiosqlite>=0.20.0",
     "pyyaml>=6.0.2",
     "ffpyplayer>=4.5.2",
+    "ffprobe-python>=1.0.3",
 ]
 readme = "README.md"
 requires-python = ">= 3.9"
