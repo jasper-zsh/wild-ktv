@@ -5,9 +5,10 @@
     Button:
         text: 'Back'
         on_release: app.nav_back()
-    TextInput:
+    CustomTextInput:
         id: keyword
         on_focus: root.on_focus(args[1])
+        on_click: root.show_keyboard()
     Button:
         text: 'Search'
         on_release: root.on_search(keyword.text)

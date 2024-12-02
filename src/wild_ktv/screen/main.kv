@@ -12,15 +12,18 @@
         BoxLayout:
             orientation: 'vertical'
             TopBar:
-            ScreenManager:
-                id: sm
-                ArtistScreen:
-                    name: 'artists'
-                TagScreen:
-                    name: 'tags'
-                SearchScreen:
-                    name: 'search'
-                ArtistSongsScreen:
-                    name: 'artist_songs'
+            BoxLayout:
+                id: main_container
+                orientation: 'vertical'
+                ScreenManager:
+                    id: sm
+                    ArtistScreen:
+                        name: 'artists'
+                    TagScreen:
+                        name: 'tags'
+                    SearchScreen:
+                        name: 'search'
+                    ArtistSongsScreen:
+                        name: 'artist_songs'
             ControlBar:
                 main_screen_manager: app.main_screen_manager
