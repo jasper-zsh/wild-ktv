@@ -22,11 +22,17 @@ class LyricsView(FloatLayout, StencilView):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._last_pos = 0
     
     def on_parent(self, instance, value):
-        self.size = value.size
+        if value:
+            self.size = value.size
     
     def on_position(self, instance, value):
+        if value - self._last_pos < 0.05:
+            logger.info('drop pos')
+            return
+        self._last_pos = value
         container = self.ids.container
         if not container:
             return

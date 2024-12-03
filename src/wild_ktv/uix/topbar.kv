@@ -3,12 +3,13 @@
     size_hint: (1, None)
     height: 50
     Button:
+        width: 50
+        size_hint_x: None
         text: 'Back'
         on_release: app.nav_back()
     CustomTextInput:
         id: keyword
+        multiline: False
         on_focus: root.on_focus(args[1])
         on_click: root.show_keyboard()
-    Button:
-        text: 'Search'
-        on_release: root.on_search(keyword.text)
+        on_text_validate: root.on_enter(args[0])

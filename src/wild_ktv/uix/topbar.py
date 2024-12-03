@@ -1,8 +1,6 @@
 import os
 import logging
-import asyncio
 from kivy.app import App
-from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.event import EventDispatcher
 from kivy.uix.boxlayout import BoxLayout
@@ -15,7 +13,7 @@ Builder.load_file(os.path.join(os.path.dirname(__file__), 'topbar.kv'))
 
 logger = logging.getLogger(__name__)
 
-class CustomTextInput(TextInput, EventDispatcher):
+class CustomTextInput(TextInput):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.register_event_type('on_click')
@@ -40,6 +38,10 @@ class TopBar(BoxLayout):
             if app.screen_manager.current != 'search':
                 app.nav_push('search')
 
+    def on_enter(self, instance):
+        self.on_search(instance.text)
+        self.hide_keyboard()
+
     def on_search(self, keyword: str):
         app = App.get_running_app()
         if app.screen_manager.current != 'search':
@@ -59,7 +61,7 @@ class TopBar(BoxLayout):
     
     def resize_keyboard(self, instance, width):
         scale = width / self.kb.width
-        self.kb.scale = scale
+        self.kb.scale = scale * 0.8
         self.kb.pos = (0, 0)
 
     def show_keyboard(self, *args):
@@ -74,18 +76,19 @@ class TopBar(BoxLayout):
             kb.do_rotation = False
             kb.do_scale = False
             kb.rotation = 0
-            scale = main_screen.ids.main_container.width / float(kb.width)
-            kb.scale = scale
-            kb.pos = 0, 0
             main_screen.ids.main_container.bind(width=self.resize_keyboard)
+            self.resize_keyboard(main_screen.ids.main_container, main_screen.ids.main_container.width)
     
-    def vkbinput(self, keyboard, keycode, *args):
+    def hide_keyboard(self):
         app = App.get_running_app()
+        main_screen = app.main_screen_manager.get_screen('main')
+        main_screen.ids.main_container.remove_widget(self.kb)
+        self.keyboard_on = False
+
+    def vkbinput(self, keyboard, keycode, *args):
         match keycode:
             case 'escape':
-                main_screen = app.main_screen_manager.get_screen('main')
-                main_screen.ids.main_container.remove_widget(self.kb)
-                self.keyboard_on = False
+                self.hide_keyboard()
             case 'backspace':
                 self.ids.keyword.text = self.ids.keyword.text[:-1]
             case 'search':

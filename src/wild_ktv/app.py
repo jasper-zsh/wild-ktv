@@ -5,11 +5,11 @@ from kivy.app import App
 from kivy.core.text import LabelBase, DEFAULT_FONT
 from kivy.properties import ObjectProperty, ListProperty, BooleanProperty
 from kivy.uix.screenmanager import ScreenManager
+from kivy.core.window import Window
 
 from wild_ktv.model import Song
 import wild_ktv.config as Config
 from wild_ktv.uix.video import EnhancedVideo
-from wild_ktv.uix.controlbar import ControlBar
 from wild_ktv.uix.playlist import Playlist
 
 logger = logging.getLogger(__name__)
@@ -27,13 +27,14 @@ class WildKTVApp(App):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.screen_stack = []
-        self.video = EnhancedVideo(play=True)
+        self.video = EnhancedVideo(play=True, allow_stretch=True)
         self.video.bind(
             loaded=self.on_video_loaded,
             eos=self.on_video_eos,
         )
 
     def build(self):
+        Window.fullscreen = 'auto'
         self.screen_manager = self.root.ids.main_screen.ids.sm
         self.main_screen_manager = self.root
         self.playlist_modal = Playlist()

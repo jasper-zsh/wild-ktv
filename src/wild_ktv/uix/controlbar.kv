@@ -1,13 +1,17 @@
 #:kivy 2.3.0
 <ControlBar>:
-    size_hint: (1, None)
-    height: 100
+    size_hint_y: None
+    height: self.minimum_height
     orientation: 'vertical'
     ProgressBar:
         id: progress
+        size_hint_y: None
+        height: 20
     BoxLayout:
+        size_hint_y: None
+        height: self.minimum_height
         Button:
-            size: 50, 50
+            size: 80, 80
             size_hint: None, None
             text: '播放器' if root.player_screen_state == 'main' else '菜单'
             on_release: app.to_player() if root.player_screen_state == 'main' else app.to_main()
@@ -22,12 +26,12 @@
                 width: self.texture_size[0]
                 size_hint_x: None
         Button:
-            size: 50, 50
+            size: 80, 80
             size_hint: None, None
-            text: '播放'
+            text: '播放' if app.video.state == 'pause' else '暂停'
             on_release: app.video.state = 'play' if app.video.state == 'pause' else 'pause'
         Button:
-            size: 50, 50
+            size: 80, 80
             size_hint: None, None
             text: '切歌'
             on_release: app.playlist = app.playlist[1:]
@@ -43,12 +47,12 @@
             min: 0
             max: 100
         Button:
-            size: 50, 50
+            size: 80, 80
             size_hint: None, None
             text: '重唱'
             on_release: app.video.seek(0)
         Button:
-            size: 50, 50
+            size: 80, 80
             size_hint: None, None
             text: '已点'
             on_release: app.playlist_modal.open()
