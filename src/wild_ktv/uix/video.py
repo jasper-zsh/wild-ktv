@@ -3,6 +3,7 @@ import time
 from threading import Thread
 
 from kivy.core.video.video_ffpyplayer import VideoFFPy
+from kivy.properties import BooleanProperty
 from kivy.resources import resource_find
 from kivy.uix.video import Video as KivyVideo
 from ffprobe import FFProbe
@@ -14,10 +15,11 @@ blank_image = Image(pix_fmt='rgba', size=(320, 240))
 logger = logging.getLogger(__name__)
 
 class EnhandedVideoFFPy(VideoFFPy):
+    audio_only = BooleanProperty(False)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.audio_only = False
-    
+
     def load(self):
         super().load()
         probe = FFProbe(self.filename)
@@ -28,6 +30,7 @@ class EnhandedVideoFFPy(VideoFFPy):
             self._out_fmt = 'rgba'
             logger.info('audio only')
         else:
+            self.audio_only = False
             self._out_fmt = probe.video[0].pix_fmt
             logger.info(f'out_fmt {self._out_fmt}')
 
@@ -205,6 +208,8 @@ class EnhandedVideoFFPy(VideoFFPy):
         self._thread.start()
 
 class EnhancedVideo(KivyVideo):
+    audio_only = BooleanProperty(False)
+
     def _do_video_load(self, *largs):
         try:
             logger.info('using customized video load')
@@ -223,15 +228,21 @@ class EnhancedVideo(KivyVideo):
                     **self.options
                 )
                 self._video.volume = self.volume
-                self._video.bind(on_load=self._on_load,
-                                on_frame=self._on_video_frame,
-                                on_eos=self._on_eos)
+                self._video.bind(
+                    on_load=self._on_load,
+                    on_frame=self._on_video_frame,
+                    on_eos=self._on_eos,
+                )
                 if self.state == 'play' or self.play:
                     self._video.play()
                 self.duration = 1.
                 self.position = 0.
         except Exception as ex:
             logger.error(f'Failed to load video: {ex}', exc_info=ex)
+    
+    def _on_load(self, *largs):
+        self.audio_only = self._video.audio_only
+        super()._on_load(*largs)
 
     def select_audio_track(self, track_id: int):
         track_id = track_id + len(self._video.videos)

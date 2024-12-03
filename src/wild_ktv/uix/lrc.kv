@@ -1,0 +1,18 @@
+#:kivy 2.3.0
+
+<LyricsView>:
+    BoxLayout:
+        id: container
+        orientation: 'vertical'
+        height: self.minimum_height
+        size_hint_y: None
+
+<LyricsLine>:
+    size: self.minimum_size
+    size_hint: None, None
+    pos_hint: {'center_x': 0.5}
+
+<LyricsWord>:
+    size: self.texture_size
+    size_hint: None, None
+    font_size: 60 if self.active else 30
