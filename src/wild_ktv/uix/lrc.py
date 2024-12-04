@@ -42,14 +42,20 @@ class LyricsView(FloatLayout, StencilView):
         for l in self._lines:
             if l[0].height != self._lines[self._cur][0].height:
                 line_height = min(l[0].height, self._lines[self._cur][0].height)
+                if line_height == 0:
+                    return
+                else:
+                    break
         if self._cur < len(self._lines) - 2:
-            if self._lines[self._cur + 1][0].pos_start < value:
-                self._lines[self._cur + 1][0].active = True
-                self._lines[self._cur][0].active = False
+            cur = self._lines[self._cur][0]
+            next = self._lines[self._cur + 1][0]
+            if next.pos_start < value:
+                next.active = True
+                cur.active = False
                 self._cur += 1
                 self._cur_word = 0
             else:
-                self._lines[self._cur][0].active = True
+                cur.active = True
         words = self._lines[self._cur][1]
         if self._cur_word < len(words) - 2:
             if words[self._cur_word + 1].pos_start < value:

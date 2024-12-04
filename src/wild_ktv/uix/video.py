@@ -126,8 +126,10 @@ class EnhandedVideoFFPy(VideoFFPy):
                     pts = ffplayer.get_pts()
                     if pts > 0:
                         frame = (blank_image, pts)
+                        val = 1 / 30.
                     
-                # logger.info(f'got frame {frame} {val}')
+                    
+                logger.info(f'got frame {frame} {val}')
 
             if val == 'eof':
                 if not did_dispatch_eof:

@@ -11,6 +11,14 @@
             "program": "${workspaceFolder}/src/main.py",
             "console": "integratedTerminal",
             "args": ["-m", "inspector"]
+        },
+        {
+            "name": "Python Profiler: Main",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "cProfile",
+            "console": "integratedTerminal",
+            "args": ["-o", "prof.bin", "${workspaceFolder}/src/main.py"]
         }
     ]
 }

@@ -25,6 +25,7 @@ managed = true
 dev-dependencies = [
     "flask>=3.1.0",
     "setuptools>=75.6.0",
+    "snakeviz>=2.2.2",
 ]
 
 [tool.hatch.metadata]
