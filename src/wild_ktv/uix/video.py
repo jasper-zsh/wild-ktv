@@ -129,7 +129,7 @@ class EnhandedVideoFFPy(VideoFFPy):
                         val = 1 / 30.
                     
                     
-                logger.info(f'got frame {frame} {val}')
+                # logger.info(f'got frame {frame} {val}')
 
             if val == 'eof':
                 if not did_dispatch_eof:

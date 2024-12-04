@@ -1,10 +1,13 @@
 #:kivy 2.3.0
 <NavBar>:
     orientation: 'vertical'
-    size_hint: (0.15, 1)
+    size_hint: (0.1, 1)
     Button:
         text: '歌星'
         on_release: app.nav_push('artists')
     Button:
         text: '标签'
         on_release: app.nav_push('tags')
+    Button:
+        text: '退出'
+        on_release: app.stop()
