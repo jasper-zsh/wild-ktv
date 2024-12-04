@@ -23,41 +23,45 @@ class LyricsView(FloatLayout, StencilView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._last_pos = 0
+        self._cur = 0
+        self._cur_word = 0
+        self._line_height = 0
     
     def on_parent(self, instance, value):
         if value:
             self.size = value.size
     
     def on_position(self, instance, value):
-        if value - self._last_pos < 0.05:
-            logger.info('drop pos')
+        if value - self._last_pos < 0.01:
             return
         self._last_pos = value
         container = self.ids.container
         if not container:
             return
-        lines = container.children
-        matched = 0
-        line_height = 999999
-        for idx, line in enumerate(lines):
-            if line.height < line_height:
-                line_height = line.height
-            if line.pos_start < self.position:
-                if not matched:
-                    line.active = True
-                    line_num = len(lines) - idx
-                    matched = line_num
-                    for word in line.children:
-                        if self.position > word.pos_start and self.position < word.pos_end:
-                            word.animate()
-                            break
-                else:
-                    line.active = False
-        container.y = - container.height + self.height / 2 + line_height * matched + self.y
+        line_height = 0
+        for l in self._lines:
+            if l[0].height != self._lines[self._cur][0].height:
+                line_height = min(l[0].height, self._lines[self._cur][0].height)
+        if self._cur < len(self._lines) - 2:
+            if self._lines[self._cur + 1][0].pos_start < value:
+                self._lines[self._cur + 1][0].active = True
+                self._lines[self._cur][0].active = False
+                self._cur += 1
+                self._cur_word = 0
+            else:
+                self._lines[self._cur][0].active = True
+        words = self._lines[self._cur][1]
+        if self._cur_word < len(words) - 2:
+            if words[self._cur_word + 1].pos_start < value:
+                words[self._cur_word + 1].animate()
+                self._cur_word += 1
+            else:
+                words[self._cur_word].animate()
+        container.y = - container.height + self.height / 2 + line_height * self._cur + self.y
 
     def on_kv_post(self, base_widget):
-        for w in self._lines:
-            self.add_widget(w)
+        for l in self._lines:
+            self.add_widget(l[0])
     
     def on_file(self, instance, value: str):
         if not value:
@@ -70,7 +74,11 @@ class LyricsView(FloatLayout, StencilView):
                 widgets = []
                 for line in lines:
                     if line[0] == '[' and line[1] >= '0' and line[1] <= '9':
-                        widgets.append(LyricsLine(line=line))
+                        lyrics_line, words = parse_lrc_line(line)
+                        words.append(LyricsWord())
+                        self._lines.append((lyrics_line, words))
+                        widgets.append(lyrics_line)
+                self._lines.append((LyricsLine(), []))
                 if self.ids.container:
                     self.ids.container.clear_widgets()
                     for w in widgets:
@@ -83,48 +91,6 @@ class LyricsLine(BoxLayout):
     line = StringProperty()
     pos_start = NumericProperty()
     active = BooleanProperty(False)
-
-    def on_kv_post(self, base_widget):
-        self.clear_widgets()
-        flag = 'S'
-        piece = ''
-        stack = []
-        widgets = []
-        last_p = 0
-        for c in self.line:
-            match flag:
-                case 'S':
-                    if c == '[':
-                        flag = 'P'
-                case 'P':
-                    if c == ']':
-                        self.pos_start = parse_pos(piece)
-                        last_p = self.pos_start
-                        piece = ''
-                        flag = 'C'
-                    else:
-                        piece += c
-                case 'C':
-                    if c == '[':
-                        stack.append(piece)
-                        piece = ''
-                        flag = 'WP'
-                    else:
-                        piece += c
-                case 'WP':
-                    if c == ']':
-                        p = parse_pos(piece)
-                        w = LyricsWord(
-                            pos_start=last_p,
-                            pos_end=p,
-                            text=stack.pop()
-                        )
-                        last_p = p
-                        self.add_widget(w)
-                        piece = ''
-                        flag = 'C'
-                    else:
-                        piece += c
 
 def parse_pos(txt: str):
     parts = txt.split(':')
@@ -150,3 +116,48 @@ class LyricsWord(Label):
     
     def on_active_changed(self, instance, value):
         self.active = value
+
+def parse_lrc_line(line: str) -> tuple[LyricsLine, list[LyricsWord]]:
+    flag = 'S'
+    piece = ''
+    stack = []
+    result = LyricsLine()
+    words = []
+    last_p = 0
+    for c in line:
+        match flag:
+            case 'S':
+                if c == '[':
+                    flag = 'P'
+            case 'P':
+                if c == ']':
+                    result.pos_start = parse_pos(piece)
+                    last_p = result.pos_start
+                    piece = ''
+                    flag = 'C'
+                else:
+                    piece += c
+            case 'C':
+                if c == '[':
+                    stack.append(piece)
+                    piece = ''
+                    flag = 'WP'
+                else:
+                    piece += c
+            case 'WP':
+                if c == ']':
+                    p = parse_pos(piece)
+                    w = LyricsWord(
+                        pos_start=last_p,
+                        pos_end=p,
+                        text=stack.pop()
+                    )
+                    last_p = p
+                    words.append(w)
+                    piece = ''
+                    flag = 'C'
+                else:
+                    piece += c
+    for word in words:
+        result.add_widget(word)
+    return result, words
