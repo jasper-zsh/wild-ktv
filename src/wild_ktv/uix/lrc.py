@@ -33,8 +33,10 @@ class LyricsView(FloatLayout, StencilView):
         self._last_pos = 0
         self._cur = 0
         self._cur_word = 0
-        self._line_height = 0
+        self._line_height = 44
         self._lines = []
+        if self.ids.container:
+            self.ids.container.clear_widgets()
     
     def on_parent(self, instance, value):
         if value:
@@ -46,17 +48,15 @@ class LyricsView(FloatLayout, StencilView):
         if not self.loaded:
             return
         self._last_pos = value
-        container = self.ids.container
-        if not container:
-            return
-        line_height = 0
-        for l in self._lines:
-            if l[0].height != self._lines[self._cur][0].height:
-                line_height = min(l[0].height, self._lines[self._cur][0].height)
-                if line_height == 0:
-                    return
-                else:
-                    break
+        # for l in self._lines:
+        #     if l[0].height != self._lines[self._cur][0].height:
+        #         line_height = min(l[0].height, self._lines[self._cur][0].height)
+        #         if line_height == 0:
+        #             return
+        #         else:
+        #             self._line_height = line_height
+        #             self.relocation()
+        #             break
         if self._cur < len(self._lines) - 2:
             cur = self._lines[self._cur][0]
             next = self._lines[self._cur + 1][0]
@@ -74,7 +74,14 @@ class LyricsView(FloatLayout, StencilView):
                 self._cur_word += 1
             else:
                 words[self._cur_word].animate()
-        container.y = - container.height + self.height / 2 + line_height * self._cur + self.y
+        self.relocation()
+        
+    
+    def relocation(self):
+        container = self.ids.container
+        if not container:
+            return
+        container.y = - container.height + self.height / 2 + self._line_height * self._cur + self.y
 
     def on_kv_post(self, base_widget):
         self.add_line_widgets()
@@ -85,9 +92,9 @@ class LyricsView(FloatLayout, StencilView):
             self.ids.container.add_widget(l[0])
     
     def on_file(self, instance, value: str):
+        self.reset()
         if not value:
             return
-        self.reset()
         file_path = os.path.join(config.get('data_root'), value.replace('\\', os.path.sep))
         asyncio.create_task(self.load_lyrics(file_path))
     

@@ -3,17 +3,21 @@ import logging
 from kivy.lang import Builder
 from kivy.app import App, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.button import ButtonBehavior
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
+from kivy.uix.label import Label
 
 from wild_ktv.model import async_session, Song
+from wild_ktv.uix.tag import Tag
 
 logger = logging.getLogger(__name__)
 
 Builder.load_file(os.path.join(os.path.dirname(__file__), 'song.kv'))
 
-class SongCard(RecycleDataViewBehavior, ButtonBehavior, BoxLayout):
-    song = ObjectProperty(None)
+class SongCard(RecycleDataViewBehavior, ButtonBehavior, FloatLayout):
+    song: Song = ObjectProperty(None)
     name = StringProperty()
     artist = StringProperty()
     tags = StringProperty()
@@ -23,6 +27,11 @@ class SongCard(RecycleDataViewBehavior, ButtonBehavior, BoxLayout):
         self.name = data['name']
         self.artist = data['artist']
         self.tags = data['tags']
+        self.ids.flags.clear_widgets()
+        if self.song.audio_only:
+            self.ids.flags.add_widget(Tag(text='仅音频'))
+            if not self.song.lrc_path:
+                self.ids.flags.add_widget(Tag(text='无歌词'))
         return super().refresh_view_attrs(rv, index, data)
     
     @staticmethod

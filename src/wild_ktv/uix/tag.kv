@@ -1,0 +1,13 @@
+#:kivy 2.3.0
+<Tag>:
+    size: self.texture_size
+    size_hint: None, None
+    padding: 5
+    color: 0, 0, 0, 1
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [5]

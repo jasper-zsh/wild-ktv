@@ -35,6 +35,7 @@ class ArtistSongsScreen(Screen):
                 select(Song)
                 .join(Song.artists)
                 .where(Artist.id == artist_id)
+                .order_by(Song.pinyin_head)
                 .options(selectinload(Song.artists))
                 .options(selectinload(Song.tags))
             )).all()

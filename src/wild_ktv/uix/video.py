@@ -74,79 +74,82 @@ class EnhandedVideoFFPy(VideoFFPy):
         # mainthread unpauses us when finishing setup
 
         while not self._ffplayer_need_quit:
-            seek_happened = False
-            if seek_queue:
-                vals = seek_queue[:]
-                del seek_queue[:len(vals)]
-                percent, precise = vals[-1]
-                ffplayer.seek(
-                    percent * ffplayer.get_metadata()['duration'],
-                    relative=False,
-                    accurate=precise
-                )
-                seek_happened = True
-                did_dispatch_eof = False
-                self._next_frame = None
+            try:
+                seek_happened = False
+                if seek_queue:
+                    vals = seek_queue[:]
+                    del seek_queue[:len(vals)]
+                    percent, precise = vals[-1]
+                    ffplayer.seek(
+                        percent * ffplayer.get_metadata()['duration'],
+                        relative=False,
+                        accurate=precise
+                    )
+                    seek_happened = True
+                    did_dispatch_eof = False
+                    self._next_frame = None
 
-            # Get next frame if paused:
-            if seek_happened and ffplayer.get_pause():
-                ffplayer.set_volume(0.0)  # Try to do it silently.
-                ffplayer.set_pause(False)
-                try:
-                    # We don't know concrete number of frames to skip,
-                    # this number worked fine on couple of tested videos:
-                    to_skip = 6
-                    while True:
-                        frame, val = ffplayer.get_frame(show=False)
-                        # Exit loop on invalid val:
-                        if val in ('paused', 'eof'):
-                            break
-                        # Exit loop on seek_queue updated:
-                        if seek_queue:
-                            break
-                        # Wait for next frame:
-                        if frame is None:
-                            sleep(0.005)
-                            continue
-                        # Wait until we skipped enough frames:
-                        to_skip -= 1
-                        if to_skip == 0:
-                            break
-                    # Assuming last frame is actual, just get it:
-                    frame, val = ffplayer.get_frame(force_refresh=True)
-                finally:
-                    ffplayer.set_pause(bool(self._state == 'paused'))
-                    # todo: this is not safe because user could have updated
-                    # volume between us reading it and setting it
-                    ffplayer.set_volume(self._volume)
-            # Get next frame regular:
-            else:
-                frame, val = ffplayer.get_frame()
-                if self.audio_only:
-                    pts = ffplayer.get_pts()
-                    if pts > 0:
-                        frame = (blank_image, pts)
-                        val = 1 / 30.
-                    
-                    
-                # logger.info(f'got frame {frame} {val}')
-
-            if val == 'eof':
-                if not did_dispatch_eof:
-                    self._do_eos()
-                    did_dispatch_eof = True
-                wait_for_wakeup(None)
-            elif val == 'paused':
-                did_dispatch_eof = False
-                wait_for_wakeup(None)
-            else:
-                did_dispatch_eof = False
-                if frame:
-                    self._next_frame = frame
-                    trigger()
+                # Get next frame if paused:
+                if seek_happened and ffplayer.get_pause():
+                    ffplayer.set_volume(0.0)  # Try to do it silently.
+                    ffplayer.set_pause(False)
+                    try:
+                        # We don't know concrete number of frames to skip,
+                        # this number worked fine on couple of tested videos:
+                        to_skip = 6
+                        while True:
+                            frame, val = ffplayer.get_frame(show=False)
+                            # Exit loop on invalid val:
+                            if val in ('paused', 'eof'):
+                                break
+                            # Exit loop on seek_queue updated:
+                            if seek_queue:
+                                break
+                            # Wait for next frame:
+                            if frame is None:
+                                sleep(0.005)
+                                continue
+                            # Wait until we skipped enough frames:
+                            to_skip -= 1
+                            if to_skip == 0:
+                                break
+                        # Assuming last frame is actual, just get it:
+                        frame, val = ffplayer.get_frame(force_refresh=True)
+                    finally:
+                        ffplayer.set_pause(bool(self._state == 'paused'))
+                        # todo: this is not safe because user could have updated
+                        # volume between us reading it and setting it
+                        ffplayer.set_volume(self._volume)
+                # Get next frame regular:
                 else:
-                    val = val if val else (1 / 30.)
-                wait_for_wakeup(val)
+                    frame, val = ffplayer.get_frame()
+                    if self.audio_only:
+                        pts = ffplayer.get_pts()
+                        if pts > 0:
+                            frame = (blank_image, pts)
+                            val = 1 / 30.
+                        
+                        
+                    # logger.info(f'got frame {frame} {val}')
+
+                if val == 'eof':
+                    if not did_dispatch_eof:
+                        self._do_eos()
+                        did_dispatch_eof = True
+                    wait_for_wakeup(None)
+                elif val == 'paused':
+                    did_dispatch_eof = False
+                    wait_for_wakeup(None)
+                else:
+                    did_dispatch_eof = False
+                    if frame:
+                        self._next_frame = frame
+                        trigger()
+                    else:
+                        val = val if val else (1 / 30.)
+                    wait_for_wakeup(val)
+            except Exception as ex:
+                logger.error(f'error playback: {ex}', exc_info=ex)
 
         ffplayer.close_player()
 
