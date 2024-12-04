@@ -10,6 +10,8 @@
 #   universal: false
 
 -e file:.
+aiofiles==24.1.0
+    # via wild-ktv
 aiosqlite==0.20.0
     # via wild-ktv
 blinker==1.9.0

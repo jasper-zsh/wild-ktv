@@ -1,6 +1,9 @@
 import os
 import logging
+import asyncio
+import aiofiles
 
+import aiofiles.os
 from kivy.lang import Builder
 from kivy.properties import StringProperty, NumericProperty, ListProperty, BooleanProperty
 from kivy.uix.floatlayout import FloatLayout
@@ -19,20 +22,28 @@ class LyricsView(FloatLayout, StencilView):
     file = StringProperty()
     _lines = ListProperty([])
     position = NumericProperty(0)
+    loaded = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.reset()
+    
+    def reset(self):
+        self.loaded = False
         self._last_pos = 0
         self._cur = 0
         self._cur_word = 0
         self._line_height = 0
+        self._lines = []
     
     def on_parent(self, instance, value):
         if value:
             self.size = value.size
     
     def on_position(self, instance, value):
-        if value - self._last_pos < 0.01:
+        if value - self._last_pos < (1 / 30.):
+            return
+        if not self.loaded:
             return
         self._last_pos = value
         container = self.ids.container
@@ -66,32 +77,39 @@ class LyricsView(FloatLayout, StencilView):
         container.y = - container.height + self.height / 2 + line_height * self._cur + self.y
 
     def on_kv_post(self, base_widget):
+        self.add_line_widgets()
+    
+    def add_line_widgets(self):
+        self.ids.container.clear_widgets()
         for l in self._lines:
-            self.add_widget(l[0])
+            self.ids.container.add_widget(l[0])
     
     def on_file(self, instance, value: str):
         if not value:
             return
+        self.reset()
         file_path = os.path.join(config.get('data_root'), value.replace('\\', os.path.sep))
-        if os.path.exists(file_path):
-            with open(file_path, 'r', encoding='utf-8') as f:
-                lines = f.readlines()
-                logger.info(f'loaded {len(lines)} from lrc file {value}')
-                widgets = []
-                for line in lines:
-                    if line[0] == '[' and line[1] >= '0' and line[1] <= '9':
-                        lyrics_line, words = parse_lrc_line(line)
-                        words.append(LyricsWord())
-                        self._lines.append((lyrics_line, words))
-                        widgets.append(lyrics_line)
-                self._lines.append((LyricsLine(), []))
-                if self.ids.container:
-                    self.ids.container.clear_widgets()
-                    for w in widgets:
-                        self.ids.container.add_widget(w)
-                else:
-                    self._lines = widgets
-
+        asyncio.create_task(self.load_lyrics(file_path))
+    
+    async def load_lyrics(self, file_path: str):
+        if not await aiofiles.os.path.exists(file_path):
+            logger.warning(f'lyrics file {file_path} not found')
+            return
+        async with aiofiles.open(file_path, 'r', encoding='utf-8') as f:
+            lines = await f.readlines()
+            logger.info(f'loaded {len(lines)} from lrc file {file_path}')
+            widgets = []
+            for line in lines:
+                if len(line) > 2 and line[0] == '[' and line[1] >= '0' and line[1] <= '9':
+                    lyrics_line, words = parse_lrc_line(line)
+                    words.append(LyricsWord())
+                    self._lines.append((lyrics_line, words))
+                    widgets.append(lyrics_line)
+            self._lines.append((LyricsLine(), []))
+            if self.ids.container:
+                self.add_line_widgets()
+            self.loaded = True
+        
 
 class LyricsLine(BoxLayout):
     line = StringProperty()
