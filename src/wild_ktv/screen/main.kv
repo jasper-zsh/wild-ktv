@@ -6,6 +6,7 @@
 #:import TagScreen wild_ktv.screen.tag.TagScreen
 #:import SearchScreen wild_ktv.screen.search.SearchScreen
 #:import ArtistSongsScreen wild_ktv.screen.artist_songs.ArtistSongsScreen
+#:import ManageScreen wild_ktv.screen.manage.ManageScreen
 <MainScreen>:
     BoxLayout:
         NavBar:
@@ -25,5 +26,7 @@
                         name: 'search'
                     ArtistSongsScreen:
                         name: 'artist_songs'
+                    ManageScreen:
+                        name: 'manage'
             ControlBar:
                 main_screen_manager: app.main_screen_manager
