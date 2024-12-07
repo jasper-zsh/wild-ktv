@@ -27,12 +27,27 @@ class SongCard(RecycleDataViewBehavior, ButtonBehavior, FloatLayout):
         self.name = data['name']
         self.artist = data['artist']
         self.tags = data['tags']
+        
+        return super().refresh_view_attrs(rv, index, data)
+
+    def on_kv_post(self, base_widget):
+        self.build_flags()
+        return super().on_kv_post(base_widget)
+    
+    def on_song(self, instance, song):
+        if not song:
+            return
+        if 'flags' in self.ids:
+            self.build_flags()
+    
+    def build_flags(self):
+        if not self.song:
+            return
         self.ids.flags.clear_widgets()
         if self.song.audio_only:
             self.ids.flags.add_widget(Tag(text='仅音频'))
             if not self.song.lrc_path:
                 self.ids.flags.add_widget(Tag(text='无歌词'))
-        return super().refresh_view_attrs(rv, index, data)
     
     @staticmethod
     def build_data(song: Song, on_release=lambda: None):
