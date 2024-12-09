@@ -9,7 +9,8 @@ from kivy.uix.button import ButtonBehavior
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.label import Label
 
-from wild_ktv.model import async_session, Song
+# from wild_ktv.model import async_session, Song
+from wild_ktv.provider import Song
 from wild_ktv.uix.tag import Tag
 
 logger = logging.getLogger(__name__)

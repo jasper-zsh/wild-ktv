@@ -1,5 +1,6 @@
 import os
 import logging
+import asyncio
 
 from kivy.app import App
 from kivy.core.text import LabelBase, DEFAULT_FONT
@@ -7,10 +8,12 @@ from kivy.properties import ObjectProperty, ListProperty, BooleanProperty
 from kivy.uix.screenmanager import ScreenManager
 from kivy.core.window import Window
 
-from wild_ktv.model import Song
 import wild_ktv.config as Config
+from wild_ktv.utils.asyncio import call_async
 from wild_ktv.uix.video import EnhancedVideo
 from wild_ktv.uix.playlist import Playlist
+from wild_ktv.provider import BaseProvider, Song
+from wild_ktv.provider.igeba import IGebaProvider
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +26,7 @@ class WildKTVApp(App):
     orig = BooleanProperty(False)
     video: EnhancedVideo
     playlist_modal: Playlist
+    provider: BaseProvider
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -32,6 +36,8 @@ class WildKTVApp(App):
             loaded=self.on_video_loaded,
             eos=self.on_video_eos,
         )
+        self.provider = IGebaProvider()
+        self.playing = None
 
     def build(self):
         Window.fullscreen = 'auto'
@@ -77,10 +83,16 @@ class WildKTVApp(App):
             self.video.select_audio_track(1)
         # self.video.seek(pos / self.video.duration)
     
-    def on_playlist(self, instance, value):
+    def on_playlist(self, instance, value: list[Song]):
         logger.info(f'playlist changed: {value}')
         if len(value) > 0:
-            if self.video.source != value[0]:
-                self.video.source = os.path.join(Config.get('data_root'), value[0].path.replace('\\', os.path.sep))
+            if self.playing != value[0]:
+                self.playing = value[0]
+                call_async(self._play(value[0]))
         else:
+            self.playing = None
             self.video.source = ''
+
+    async def _play(self, song: Song):
+        song = await self.provider.get_song(song)
+        self.video.source = song.file_url

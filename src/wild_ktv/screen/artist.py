@@ -11,7 +11,8 @@ from kivy.uix.recycleview import RecycleView
 from sqlalchemy import select
 
 from wild_ktv.uix.artist import ArtistCard
-from wild_ktv.model import async_session, Artist
+# from wild_ktv.model import async_session, Artist
+from wild_ktv.provider import BaseProvider, PageOptions, Artist
 
 logger = logging.getLogger(__name__)
 
@@ -28,14 +29,18 @@ class ArtistScreen(Screen):
         return super().on_enter(*args)
 
     async def query(self):
-        async with async_session() as session:
-            artists = (await session.scalars(
-                select(Artist)
-                .order_by(Artist.pinyin_head)
-                .limit(200)
-            )).all()
-            logger.info(f'Got {len(artists)} artists')
-            self.recycle_view.data = [ArtistCard.build_data(artist, on_release=partial(self.on_artist_clicked, artist)) for artist in artists]
+        provider: BaseProvider = App.get_running_app().provider
+        artists = await provider.list_artists(page_options=PageOptions())
+        logger.info(f'Got {len(artists.data)} artists total {artists.total}')
+        self.recycle_view.data = [ArtistCard.build_data(artist, on_release=partial(self.on_artist_clicked, artist)) for artist in artists.data]
+        # async with async_session() as session:
+        #     artists = (await session.scalars(
+        #         select(Artist)
+        #         .order_by(Artist.pinyin_head)
+        #         .limit(200)
+        #     )).all()
+        #     logger.info(f'Got {len(artists)} artists')
+        #     self.recycle_view.data = [ArtistCard.build_data(artist, on_release=partial(self.on_artist_clicked, artist)) for artist in artists]
     
     def on_artist_clicked(self, artist: Artist, *args):
         logger.info(f'Clicked artist {artist.id} {artist.name}')

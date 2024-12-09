@@ -10,7 +10,7 @@ from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.button import ButtonBehavior
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 
-from wild_ktv.model import Artist
+from wild_ktv.provider import Artist
 
 logger = logging.getLogger(__name__)
 

@@ -22,17 +22,23 @@ class EnhandedVideoFFPy(VideoFFPy):
 
     def load(self):
         super().load()
-        probe = FFProbe(self.filename)
-        self.videos = probe.video
-        self.audios = probe.audio
-        if len(probe.video) == 0:
-            self.audio_only = True
-            self._out_fmt = 'rgba'
-            logger.info('audio only')
+        if self.filename.startswith('file:'):
+            probe = FFProbe(self.filename)
+            self.videos = len(probe.video)
+            self.audios = len(probe.audio)
+            if self.videos == 0:
+                self.audio_only = True
+                self._out_fmt = 'rgba'
+                logger.info('audio only')
+            else:
+                self.audio_only = False
+                self._out_fmt = probe.video[0].pix_fmt
+                logger.info(f'out_fmt {self._out_fmt}')
         else:
+            self.videos = 1
+            self.audios = 2
             self.audio_only = False
-            self._out_fmt = probe.video[0].pix_fmt
-            logger.info(f'out_fmt {self._out_fmt}')
+            self._out_fmt = 'rgba'
 
     def _next_frame_run(self, ffplayer):
         sleep = time.sleep
@@ -62,6 +68,7 @@ class EnhandedVideoFFPy(VideoFFPy):
                 # change in future, so we check for both bytes and str
                 if src_pix_fmt in (b'yuv420p', 'yuv420p'):
                     self._out_fmt = 'yuv420p'
+                    ffplayer.set_output_pix_fmt(self._out_fmt)
                 break
 
         if self._ffplayer_need_quit:
@@ -187,13 +194,15 @@ class EnhandedVideoFFPy(VideoFFPy):
             'out_fmt': self._out_fmt,
             'sn': True,
             'volume': self._volume,
+            'infbuf': False,
         }
         ffplayer = MediaPlayer(
             self._filename,
             audio_only=self.audio_only,
             callback=self._player_callback,
             thread_lib='SDL',
-            loglevel='info', ff_opts=ff_opts
+            loglevel='info',
+            ff_opts=ff_opts,
         )
 
         # Disabled as an attempt to fix kivy issue #6210
@@ -250,7 +259,7 @@ class EnhancedVideo(KivyVideo):
         super()._on_load(*largs)
 
     def select_audio_track(self, track_id: int):
-        track_id = track_id + len(self._video.videos)
+        track_id = track_id + self._video.videos
         try:
             self._video._ffplayer.request_channel('audio', 'open', track_id)
         except Exception as ex:
