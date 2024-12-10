@@ -62,7 +62,6 @@ class IGebaProvider(BaseProvider):
                 'User-Agent': 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36',
                 'Origin': 'local://c',
             },
-            proxy='http://localhost:8888'
         )
     
     async def list_artists(self, page_options):
