@@ -1,0 +1,25 @@
+#:kivy 2.3.0
+<AlbumCard>:
+    size_hint: None, None
+    size: 300, 100
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 0.5
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    BoxLayout:
+        pos_hint: {'x': 0, 'y': 0}
+        orientation: 'vertical'
+        padding: 20, 10
+        Label:
+            text: root.name
+            size: self.texture_size
+            size_hint: None, None
+            font_size: 20
+    BoxLayout:
+        id: flags
+        pos_hint: {'top': 1, 'right': 1}
+        size: self.minimum_size
+        size_hint: None, None
+        spacing: 5

@@ -3,14 +3,22 @@
     orientation: 'vertical'
     size_hint: (0.1, 1)
     Button:
+        text: '歌单'
+        font_size: 30
+        on_release: app.nav_push('albums')
+    Button:
         text: '歌星'
+        font_size: 30
         on_release: app.nav_push('artists')
     Button:
         text: '标签'
+        font_size: 30
         on_release: app.nav_push('tags')
     Button:
         text: '管理'
+        font_size: 30
         on_release: app.nav_push('manage')
     Button:
         text: '退出'
+        font_size: 30
         on_release: app.stop()

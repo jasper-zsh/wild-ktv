@@ -12,18 +12,18 @@ from kivy.properties import NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.screenmanager import Screen
 
 # from wild_ktv.model import async_session, Song, Artist
-from wild_ktv.provider import BaseProvider, Song, Artist, SongFilter, PageOptions
+from wild_ktv.provider import BaseProvider, Song, Artist, FilterOptions, PageOptions
 from wild_ktv.uix.song import SongCard
 
 logger = logging.getLogger(__name__)
-Builder.load_file(os.path.join(os.path.dirname(__file__), 'artist_songs.kv'))
+Builder.load_file(os.path.join(os.path.dirname(__file__), 'song_list.kv'))
 
-class ArtistSongsScreen(Screen):
-    artist_id = StringProperty()
-    artist_name = StringProperty()
+class SongListScreen(Screen):
+    song_filter = ObjectProperty(None)
+    title = StringProperty()
     load_task = ObjectProperty(None)
 
-    def on_artist_id(self, instance, value):
+    def on_song_filter(self, instance, value: FilterOptions):
         if self.load_task:
             self.load_task.cancel()
         self.load_task = asyncio.create_task(self.load_data(value))
@@ -32,11 +32,9 @@ class ArtistSongsScreen(Screen):
     def cb(self, *args):
         logger.info(f'async cb: {args}')
     
-    async def load_data(self, artist_id):
+    async def load_data(self, song_filter):
         provider: BaseProvider = App.get_running_app().provider
-        artist = await provider.get_artist(artist_id)
-        self.artist_name = artist.name
-        song_page = await provider.list_songs(SongFilter(artist=artist_id), PageOptions())
+        song_page = await provider.list_songs(song_filter, PageOptions())
         logger.info(f'Got {len(song_page.data)} songs total {song_page.total}')
         self.ids.rv.data = [SongCard.build_data(song, on_release=partial(self.on_song_clicked, song)) for song in song_page.data]
         # async with async_session() as session:

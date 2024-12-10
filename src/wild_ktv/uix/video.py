@@ -194,7 +194,8 @@ class EnhandedVideoFFPy(VideoFFPy):
             'out_fmt': self._out_fmt,
             'sn': True,
             'volume': self._volume,
-            'infbuf': False,
+            # 'genpts': True,
+            # 'infbuf': False,
         }
         ffplayer = MediaPlayer(
             self._filename,

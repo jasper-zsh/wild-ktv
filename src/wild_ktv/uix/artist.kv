@@ -1,7 +1,7 @@
 #:kivy 2.3.0
 <ArtistCard>:
     size_hint: None, None
-    size: 150, 50
+    size: 180, 80
     padding: 20, 10
     anchor_x: 'left'
     anchor_y: 'center'
@@ -11,8 +11,9 @@
         RoundedRectangle:
             pos: self.pos
             size: self.size
-            radius: [20]
+            radius: [40]
     Label:
         text: root.name
         size: self.texture_size
         size_hint: None, None
+        font_size: 20

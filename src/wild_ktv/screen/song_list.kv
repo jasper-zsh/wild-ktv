@@ -1,12 +1,13 @@
 #:kivy 2.3.0
-<ArtistSongsScreen>:
+<SongListScreen>:
     ScrollView:
         BoxLayout:
             orientation: 'vertical'
             Label:
-                text: root.artist_name
+                text: root.title
                 size: self.texture_size
                 size_hint: None, None
+                font_size: 20
             RecycleView:
                 id: rv
                 viewclass: 'SongCard'

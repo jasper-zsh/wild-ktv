@@ -2,7 +2,7 @@ import logging
 import json
 import asyncio
 from aiohttp import ClientSession, FormData
-from . import BaseProvider, PageOptions, Page, Artist, Song, Tag
+from . import BaseProvider, PageOptions, Page, Artist, Song, Tag, Album, FilterOptions
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +53,9 @@ class ForwardServer:
                     self.close()
                     return
                 cur = next
+            logger.info(f'forwarding finished {self.file_url}')
+            writer.close()
+            self.close()
 
 class IGebaProvider(BaseProvider):
     def __init__(self):
@@ -63,8 +66,28 @@ class IGebaProvider(BaseProvider):
                 'Origin': 'local://c',
             },
         )
+
+    def _build_filter_params(self, filter_options: FilterOptions):
+        f = {}
+        if filter_options.name:
+            f['Name'] = filter_options.name
+        if filter_options.artist:
+            f['Package'] = {
+                'Type': 1,
+                'Id': int(filter_options.artist),
+            }
+        if filter_options.album:
+            parts = filter_options.album.split('-')
+            f['Package'] = {
+                'Type': int(parts[0]),
+                'Id': int(parts[1]),
+            }
+        return f
     
-    async def list_artists(self, page_options):
+    async def list_artists(self, artist_filter = None, page_options = None):
+        if not artist_filter:
+            artist_filter = FilterOptions(tag='推荐歌星')
+        f = self._build_filter_params(artist_filter)
         res = await self.client.post(
             '/cloud.php',
             data=FormData({
@@ -72,12 +95,7 @@ class IGebaProvider(BaseProvider):
                 'CMD': 'GET_PACGS',
                 'PARAMS': json.dumps({
                     'PackageType': 1,
-                    'Filter': {
-                        'PYCode': '',
-                        'Sex': '',
-                        'Tag': '推荐歌星',
-                        'Region': ''
-                    },
+                    'Filter': f,
                     'Page': {
                         'PageSize': page_options.per_page,
                         'PageNo': page_options.page_num,
@@ -111,13 +129,20 @@ class IGebaProvider(BaseProvider):
         )
     
     async def list_songs(self, song_filter, page_options):
-        f = {}
-        if song_filter.pycode:
-            f['PYCode'] = song_filter.pycode
-        if song_filter.artist:
-            f['Package'] = {
-                'Type': 1,
-                'Id': int(song_filter.artist),
+        f = self._build_filter_params(song_filter)
+        opts = {
+            'Order': [{
+                'Hot': 1,
+            }],
+        }
+        if song_filter.album:
+            parts = song_filter.album.split('-')
+            if parts[0] == '4':
+                opts = {}
+        if page_options:
+            opts['Page'] = {
+                'PageNo': page_options.page_num,
+                'PageSize': page_options.per_page,
             }
         res = await self.client.post(
             '/cloud.php',
@@ -126,13 +151,7 @@ class IGebaProvider(BaseProvider):
                 'CMD': 'GET_SONGS',
                 'PARAMS': json.dumps({
                     'Filter': f,
-                    'Order': [{
-                        'Hot': 1,
-                    }],
-                    'Page': {
-                        'PageNo': page_options.page_num,
-                        'PageSize': page_options.per_page,
-                    }
+                    **opts,
                 })
             })
         )
@@ -164,3 +183,43 @@ class IGebaProvider(BaseProvider):
         await server.start()
         song.file_url = server.get_forward_url()
         return song
+
+    async def list_playlists(self):
+        res = await self.client.post(
+            '/cloud.php',
+            data=FormData({
+                'VER': 6,
+                'CMD': 'GET_PACGS',
+                'PARAMS': json.dumps({
+                    'PackageType': 4
+                })
+            })
+        )
+        res_data = await res.json()
+        result = []
+        result.extend([Album(id=f'4-{item['RankId']}', name=item['RankTitle'], cover=item['Picture']) for item in res_data['List']])
+        res = await self.client.post(
+            '/cloud.php',
+            data=FormData({
+                'VER': 6,
+                'CMD': 'GET_PACGS',
+                'PARAMS': json.dumps({
+                    'PackageType': 3,
+                    'Filter': '',
+                    'Page': {
+                        'PageSize': 100,
+                        'PageNo': 1
+                    }
+                })
+            })
+        )
+        res_data = await res.json()
+        result.extend([Album(
+            id=f'3-{item['PlayId']}',
+            name=item['PlayTitle'],
+            cover=item['Picture']
+        ) for item in res_data['List']])
+        return result
+    
+    async def list_manage_actions(self):
+        return []

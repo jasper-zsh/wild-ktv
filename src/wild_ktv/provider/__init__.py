@@ -40,6 +40,37 @@ class Song:
         self.orig_channel = orig_channel
         self.audio_only = audio_only
         self.lrc_path = lrc_path
+    
+    @property
+    def inst_channel(self):
+        if self.orig_channel == 0:
+            return 1
+        else:
+            return 0
+
+class Album:
+    def __init__(
+        self,
+        id: str,
+        name: str,
+        cover: str = ''
+    ):
+        self.id = id
+        self.name = name
+        self.cover = cover
+
+class ManageAction:
+    def __init__(
+        self,
+        label: str,
+        value: str,
+        action_text: str = None,
+        action = None,
+    ):
+        self.label = label
+        self.value = value
+        self.action_text = action_text
+        self.action = action
 
 T = TypeVar('T')
 
@@ -48,26 +79,33 @@ class Page(Generic[T]):
         self.total = total
         self.data = data
 
-class SongFilter:
+class FilterOptions:
     def __init__(
         self,
-        pycode: str = None,
+        name: str = None,
         artist: str = None,
-        playlist: str = None,
+        album: str = None,
+        tag: str = None,
     ):
-        self.pycode = pycode
+        self.name = name
         self.artist = artist
-        self.playlist = playlist
+        self.album = album
 
 class BaseProvider:
-    async def list_artists(self, page_options: PageOptions) -> Page[Artist]:
+    async def list_artists(self, artist_filter: FilterOptions = None, page_options: PageOptions = None) -> Page[Artist]:
         pass
 
     async def get_artist(self, id: str) -> Artist:
         pass
 
-    async def list_songs(self, song_filter: SongFilter, page_options: PageOptions) -> Page[Song]:
+    async def list_songs(self, song_filter: FilterOptions, page_options: PageOptions) -> Page[Song]:
         pass
 
     async def get_song(self, song: Song) -> Song:
+        pass
+
+    async def list_playlists(self) -> list[Album]:
+        pass
+
+    async def list_manage_actions(self) -> list[ManageAction]:
         pass

@@ -14,6 +14,7 @@
             size: 80, 80
             size_hint: None, None
             text: '播放器' if root.player_screen_state == 'main' else '菜单'
+            font_size: 20
             on_release: app.to_player() if root.player_screen_state == 'main' else app.to_main()
         BoxLayout:
             orientation: 'vertical'
@@ -21,22 +22,27 @@
                 text: root.song_name
                 width: self.texture_size[0]
                 size_hint_x: None
+                font_size: 30
             Label:
                 text: root.song_artist
                 width: self.texture_size[0]
                 size_hint_x: None
+                font_size: 20
         Button:
             size: 80, 80
             size_hint: None, None
             text: '播放' if app.video.state == 'pause' else '暂停'
+            font_size: 20
             on_release: app.video.state = 'play' if app.video.state == 'pause' else 'pause'
         Button:
             size: 80, 80
             size_hint: None, None
             text: '切歌'
+            font_size: 20
             on_release: app.playlist = app.playlist[1:]
         Label:
             text: '音量'
+            font_size: 20
             width: self.texture_size[0]
             size_hint_x: None
         Slider:
@@ -50,14 +56,17 @@
             size: 80, 80
             size_hint: None, None
             text: '重唱'
+            font_size: 20
             on_release: app.video.seek(0)
         Button:
             size: 80, 80
             size_hint: None, None
             text: '已点'
+            font_size: 20
             on_release: app.playlist_modal.open()
         Label:
             text: '原唱' if app.orig else '伴唱'
+            font_size: 20
             width: self.texture_size[0]
             size_hint_x: None
         Switch:

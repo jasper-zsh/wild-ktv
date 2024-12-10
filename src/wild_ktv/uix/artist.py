@@ -37,6 +37,6 @@ class ArtistCard(RecycleDataViewBehavior, ButtonBehavior, AnchorLayout):
             'on_release': on_release,
             'artist': artist,
             'name': artist.name,
-            'size': (150, 50),
+            'size': (180, 80),
         }
     

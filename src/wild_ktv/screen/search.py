@@ -10,7 +10,8 @@ from kivy.lang import Builder
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
 from kivy.uix.boxlayout import BoxLayout
-from wild_ktv.model import Artist, Song, async_session
+# from wild_ktv.model import Artist, Song, async_session
+from wild_ktv.provider import BaseProvider, FilterOptions, PageOptions, Artist, Song
 from wild_ktv.uix.artist import ArtistCard
 from wild_ktv.uix.song import SongCard
 
@@ -31,27 +32,33 @@ class SearchScreen(Screen):
         self.search_task = asyncio.create_task(self.do_search(keyword))
 
     async def do_search(self, keyword):
-        async with async_session() as session:
-            artists = (await session.scalars(
-                select(Artist).where(or_(
-                    Artist.pinyin_head.like(f'{keyword}%'),
-                    Artist.name.like(f'{keyword}%')
-                )).limit(10)
-            )).all()
-            logger.info(f'Got artists: {artists}')
-            songs = (await session.scalars(
-                select(Song).where(
-                    or_(
-                        Song.pinyin_head.like(f'{keyword}%'),
-                        Song.name.like(f'{keyword}%')
-                    )
-                )
-                .options(selectinload(Song.artists))
-                .options(selectinload(Song.tags))
-                .limit(50)
-            )).all()
-            logger.info(f'Got songs: {songs}')
-            self.rebuild(artists, songs)
+        provider: BaseProvider = App.get_running_app().provider
+        artist_page = await provider.list_artists(artist_filter=FilterOptions(name=keyword), page_options=PageOptions(page_num=1, per_page=20))
+        logger.info(f'Got {len(artist_page.data)} artists total {artist_page.total}')
+        song_page = await provider.list_songs(song_filter=FilterOptions(name=keyword), page_options=PageOptions())
+        logger.info(f'Got {len(song_page.data)} songs total {song_page.total}')
+        self.rebuild(artist_page.data, song_page.data)
+        # async with async_session() as session:
+        #     artists = (await session.scalars(
+        #         select(Artist).where(or_(
+        #             Artist.pinyin_head.like(f'{keyword}%'),
+        #             Artist.name.like(f'{keyword}%')
+        #         )).limit(10)
+        #     )).all()
+        #     logger.info(f'Got artists: {artists}')
+        #     songs = (await session.scalars(
+        #         select(Song).where(
+        #             or_(
+        #                 Song.pinyin_head.like(f'{keyword}%'),
+        #                 Song.name.like(f'{keyword}%')
+        #             )
+        #         )
+        #         .options(selectinload(Song.artists))
+        #         .options(selectinload(Song.tags))
+        #         .limit(50)
+        #     )).all()
+        #     logger.info(f'Got songs: {songs}')
+        #     self.rebuild(artists, songs)
     
     def rebuild(self, artists: list[Artist], songs: list[Song]):
         self.ids.container.clear_widgets()
@@ -83,8 +90,9 @@ class SearchScreen(Screen):
     def on_artist_clicked(self, artist: Artist, *args):
         logger.info(f'Clicked artist {artist.id} {artist.name}')
         app = App.get_running_app()
-        screen = app.screen_manager.get_screen('artist_songs')
-        screen.artist_id = artist.id
+        screen = app.screen_manager.get_screen('song_list')
+        screen.title = artist.name
+        screen.song_filter = FilterOptions(artist=artist.id)
         app.nav_push(screen.name)
 
     def on_song_clicked(self, song: Song, *args):

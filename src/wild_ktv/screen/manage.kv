@@ -1,44 +1,10 @@
 #:kivy 2.3.0
 <ManageScreen>:
     StatsView:
+        id: container
 
 <StatsView>:
     orientation: 'vertical'
-    Row:
-        label: '歌手数：'
-        value: root.artists
-    Row:
-        label: '标签数：'
-        value: root.tags
-    Row:
-        label: '歌曲数：'
-        value: root.songs
-    Row:
-        label: '有视频的歌曲数：'
-        value: root.song_with_video
-    Row:
-        label: '仅音频的歌曲数：'
-        value: root.song_audio_only
-    Row:
-        label: '没有歌曲的歌手数：'
-        value: root.no_song_artists
-        action_text: '清理'
-        on_action: root.clear_no_song_artists()
-    Row:
-        label: '没有歌曲的标签数：'
-        value: root.no_song_tags
-        action_text: '清理'
-        on_action: root.clear_no_song_tags()
-    Row:
-        label: '没有歌词的纯音频数：'
-        value: root.audio_only_without_lyrics
-        action_text: '抓取' if not root.fetching_lyrics else '停止抓取'
-        on_action: root.fetch_lyrics() if not root.fetching_lyrics else root.stop_fetch_lyrics()
-    Row:
-        label: '损坏的歌词数：'
-        value: root.broken_lyrics
-        action_text: '扫描并修复' if not root.fixing_lyrics else '停止修复'
-        on_action: root.fix_lyrics() if not root.fixing_lyrics else root.stop_fix_lyrics()
 
 <Row>:
     height: 30

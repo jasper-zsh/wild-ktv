@@ -12,7 +12,7 @@ from sqlalchemy import select
 
 from wild_ktv.uix.artist import ArtistCard
 # from wild_ktv.model import async_session, Artist
-from wild_ktv.provider import BaseProvider, PageOptions, Artist
+from wild_ktv.provider import BaseProvider, PageOptions, Artist, FilterOptions
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +45,7 @@ class ArtistScreen(Screen):
     def on_artist_clicked(self, artist: Artist, *args):
         logger.info(f'Clicked artist {artist.id} {artist.name}')
         app = App.get_running_app()
-        screen = app.screen_manager.get_screen('artist_songs')
-        screen.artist_id = artist.id
+        screen = app.screen_manager.get_screen('song_list')
+        screen.title = artist.name
+        screen.song_filter = FilterOptions(artist=artist.id)
         app.nav_push(screen.name)

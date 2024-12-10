@@ -5,8 +5,9 @@
 #:import ArtistScreen wild_ktv.screen.artist.ArtistScreen
 #:import TagScreen wild_ktv.screen.tag.TagScreen
 #:import SearchScreen wild_ktv.screen.search.SearchScreen
-#:import ArtistSongsScreen wild_ktv.screen.artist_songs.ArtistSongsScreen
+#:import SongListScreen wild_ktv.screen.song_list.SongListScreen
 #:import ManageScreen wild_ktv.screen.manage.ManageScreen
+#:import AlbumScreen wild_ktv.screen.album.AlbumScreen
 <MainScreen>:
     BoxLayout:
         NavBar:
@@ -18,14 +19,16 @@
                 orientation: 'vertical'
                 ScreenManager:
                     id: sm
+                    AlbumScreen:
+                        name: 'albums'
                     ArtistScreen:
                         name: 'artists'
                     TagScreen:
                         name: 'tags'
                     SearchScreen:
                         name: 'search'
-                    ArtistSongsScreen:
-                        name: 'artist_songs'
+                    SongListScreen:
+                        name: 'song_list'
                     ManageScreen:
                         name: 'manage'
             ControlBar:
