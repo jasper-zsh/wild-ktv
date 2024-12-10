@@ -5,6 +5,7 @@ from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager
 from kivy.properties import ObjectProperty, StringProperty, BooleanProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.animation import Animation
 
 from wild_ktv.uix.video import EnhancedVideo
 
@@ -61,6 +62,10 @@ class ControlBar(BoxLayout):
         self.ids.volume.value = value * 100
     
     def on_playlist_changed(self, instance, value):
+        if 'btn_playlist' in self.ids:
+            anim = Animation(background_color=(0, 0, 0, 0), duration=0.2)
+            anim += Animation(background_color=(1, 1, 1, 1), duration=0.2)
+            anim.start(self.ids.btn_playlist)
         if len(value) == 0:
             self.song_name = '请点歌'
             self.song_artist = ''

@@ -34,11 +34,11 @@
         width: 80
         height: 50
         size_hint: None, None
-        on_release: root.set_to_top()
+        on_release: root.set_to_top(args[0])
     Button:
         text: '删除'
         width: 80
         height: 50
         size_hint: None, None
-        on_release: root.remove()
+        on_release: root.remove(args[0])
     

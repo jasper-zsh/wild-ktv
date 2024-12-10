@@ -157,6 +157,7 @@ class IGebaProvider(BaseProvider):
         )
         res_data = await res.json()
         songs = [Song(
+            id=item['SongNumber'],
             name=item['SongName'],
             artists=[Artist(name=name) for name in item['SingerName'].split('/')],
             file_url=item['SongNumber'],

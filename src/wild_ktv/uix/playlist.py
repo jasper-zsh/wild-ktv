@@ -33,17 +33,19 @@ class PlaylistItem(RecycleDataViewBehavior, BoxLayout):
         self.artist = data['artist']
         return super().refresh_view_attrs(rv, index, data)
 
-    def set_to_top(self):
+    def set_to_top(self, instance):
+        idx = list(reversed(self.parent.children)).index(instance.parent)
         app = App.get_running_app()
         app.playlist = [
             app.playlist[0],
             self.song,
-            *filter(lambda x: x.id != self.song.id, app.playlist[1:])
+            *[x[1] for x in filter(lambda x: x[0] != 0 and x[0] != idx, enumerate(app.playlist))]
         ]
 
-    def remove(self):
+    def remove(self, instance):
+        idx = list(reversed(self.parent.children)).index(instance.parent)
         app = App.get_running_app()
-        app.playlist = [*filter(lambda x: x.id != self.song.id, app.playlist)]
+        app.playlist = [x[1] for x in filter(lambda x: x[0] != idx, enumerate(app.playlist))]
     
     @staticmethod
     def build_data(song: Song):
