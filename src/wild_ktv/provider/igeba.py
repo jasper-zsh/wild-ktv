@@ -6,6 +6,54 @@ from . import BaseProvider, PageOptions, Page, Artist, Song, Tag
 
 logger = logging.getLogger(__name__)
 
+class ForwardServer:
+    def __init__(self, file_url: str, host: str = '127.0.0.1', port: int = 0):
+        self.file_url = file_url
+        self.host = host
+        self.port = port
+        self.server = None
+    
+    async def start(self):
+        self.server = await asyncio.start_server(self._client_callback, host=self.host, port=self.port)
+        addr = self.server.sockets[0].getsockname()
+        self.port = addr[1]
+    
+    def get_forward_url(self):
+        return f'tcp://{self.host}:{self.port}'
+
+    def close(self):
+        if self.server:
+            self.server.close()
+    
+    async def _client_callback(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+        logger.info(f'client connected for {self.file_url}')
+        async with ClientSession(headers={
+            'User-Agent': 'Mozilla/3.0 (compatible; Indy Library)'
+        }) as session:
+            info_res = await session.head(self.file_url)
+            logger.info(f'got video length {info_res.content_length}')
+            cur = 0
+            while cur < info_res.content_length:
+                next = cur + 2097152
+                if next > info_res.content_length:
+                    next = info_res.content_length
+                range = f'bytes={cur}-{next}'
+                logger.info(f'reading range {range} len {next - cur}')
+                res = await session.get(self.file_url, headers={
+                    'Range': range,
+                })
+                data = await res.read()
+                logger.info(f'got data len {len(data)}')
+                try:
+                    writer.write(data)
+                    await writer.drain()
+                except:
+                    logger.info(f'client connection close for {self.file_url}')
+                    writer.close()
+                    self.close()
+                    return
+                cur = next
+
 class IGebaProvider(BaseProvider):
     def __init__(self):
         self.client = ClientSession(
@@ -113,34 +161,7 @@ class IGebaProvider(BaseProvider):
             })
         )
         res_data = await res.json()
-        song.file_url = res_data['FileUrl']
-        song.file_url = 'tcp://127.0.0.1:7777'
-        server = await asyncio.streams.start_server(self._client_connected(res_data['FileUrl']), host='127.0.0.1', port=0)
-        addr = server.sockets[0].getsockname()
-        song.file_url = f'tcp://{addr[0]}:{addr[1]}'
+        server = ForwardServer(res_data['FileUrl'])
+        await server.start()
+        song.file_url = server.get_forward_url()
         return song
-    
-    def _client_connected(self, real_url: str):
-        async def cb(reader, writer):
-            logger.info(f'client connected for song {real_url}')
-            async with ClientSession(headers={
-                'User-Agent': 'Mozilla/3.0 (compatible; Indy Library)'
-            }) as session:
-                info_res = await session.head(real_url)
-                logger.info(f'got video length {info_res.content_length}')
-                cur = 0
-                while cur < info_res.content_length:
-                    next = cur + 2097152
-                    if next > info_res.content_length:
-                        next = info_res.content_length
-                    range = f'bytes={cur}-{next}'
-                    logger.info(f'reading range {range} len {next - cur}')
-                    res = await session.get(real_url, headers={
-                        'Range': range,
-                    })
-                    data = await res.read()
-                    logger.info(f'got data len {len(data)}')
-                    writer.write(data)
-                    await writer.drain()
-                    cur = next
-        return cb
