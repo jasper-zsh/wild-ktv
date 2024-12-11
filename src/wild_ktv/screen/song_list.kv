@@ -1,21 +1,20 @@
 #:kivy 2.3.0
 <SongListScreen>:
-    ScrollView:
-        BoxLayout:
-            orientation: 'vertical'
-            Label:
-                text: root.title
-                size: self.texture_size
-                size_hint: None, None
-                font_size: 20
-            RecycleView:
-                id: rv
-                viewclass: 'SongCard'
-                RecycleGridLayout:
-                    key_size: 'size'
-                    cols: max(1, floor(self.width / 302))
-                    spacing: 10
-                    default_size: None, None
-                    default_size_hint: None, None
-                    size_hint_y: None
-                    height: self.minimum_height
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            text: root.title
+            size: self.texture_size
+            size_hint: None, None
+            font_size: 20
+        RecycleView:
+            id: rv
+            viewclass: 'SongCard'
+            RecycleGridLayout:
+                key_size: 'size'
+                cols: max(1, floor(self.width / 302))
+                spacing: 10
+                default_size: None, None
+                default_size_hint: None, None
+                size_hint_y: None
+                height: self.minimum_height
