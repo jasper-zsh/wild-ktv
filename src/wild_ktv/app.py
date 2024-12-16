@@ -14,6 +14,7 @@ from wild_ktv.uix.video import EnhancedVideo
 from wild_ktv.uix.playlist import Playlist
 from wild_ktv.provider import BaseProvider, Song
 from wild_ktv.provider.igeba import IGebaProvider
+from wild_ktv.provider.local import LocalProvider
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,8 @@ class WildKTVApp(App):
             loaded=self.on_video_loaded,
             eos=self.on_video_eos,
         )
-        self.provider = IGebaProvider()
+        # self.provider = IGebaProvider()
+        self.provider = LocalProvider()
         self.playing = None
 
     def build(self):

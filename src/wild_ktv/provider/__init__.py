@@ -63,14 +63,16 @@ class ManageAction:
     def __init__(
         self,
         label: str,
-        value: str,
-        action_text: str = None,
+        value: str = '',
+        action_text: str = '',
         action = None,
+        load = None,
     ):
         self.label = label
         self.value = value
         self.action_text = action_text
         self.action = action
+        self.load = load
 
 T = TypeVar('T')
 

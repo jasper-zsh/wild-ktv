@@ -43,104 +43,23 @@ class StatsView(BoxLayout):
     async def _load_data(self):
         provider: BaseProvider = App.get_running_app().provider
         actions = await provider.list_manage_actions()
+        futures = []
         for action in actions:
-            self.add_widget(Row(
+            widget = Row(
                 label=action.label,
                 value=action.value,
                 action_text=action.action_text,
-                on_action=functools.partial(self._on_manage_action, action.action),
-            ))
+            )
+            if action.action:
+                widget.on_action = functools.partial(self._on_manage_action, widget, action)
+            if action.load:
+                futures.append(asyncio.create_task(action.load(widget, action)))
+            self.add_widget(widget)
+        if len(futures) > 0:
+            await asyncio.wait(futures)
     
-    def _on_manage_action(self, action, *args):
-        call_async(action(), logger=logger)
-    
-    # async def load_data(self):
-    #     async with async_session() as session:
-    #         cnt = await session.scalar(
-    #             select(func.count(Artist.id))
-    #             .select_from(Artist)
-    #         )
-    #         self.artists = str(cnt)
-    #         cnt = await session.scalar(
-    #             select(func.count(Tag.id))
-    #             .select_from(Tag)
-    #         )
-    #         self.tags=  str(cnt)
-    #         cnt = await session.scalar(
-    #             select(func.count(Song.id))
-    #             .select_from(Song)
-    #         )
-    #         self.songs = str(cnt)
-    #         cnt = await session.scalar(
-    #             select(func.count(Song.id))
-    #             .select_from(Song)
-    #             .where(Song.audio_only == False)
-    #         )
-    #         self.song_with_video = str(cnt)
-    #         cnt = await session.scalar(
-    #             select(func.count(Song.id))
-    #             .select_from(Song)
-    #             .where(Song.audio_only == True)
-    #         )
-    #         self.song_audio_only = str(cnt)
-    #         cnt = await session.scalar(
-    #             select(func.count(Artist.id))
-    #             .select_from(Artist)
-    #             .outerjoin(song_artist_table, Artist.id == song_artist_table.c.artist_id)
-    #             .where(song_artist_table.c.song_id == None)
-    #         )
-    #         self.no_song_artists = str(cnt)
-    #         cnt = await session.scalar(
-    #             select(func.count(Tag.id))
-    #             .select_from(Tag)
-    #             .outerjoin(song_tag_table, Tag.id == song_tag_table.c.tag_id)
-    #             .where(song_tag_table.c.song_id == None)
-    #         )
-    #         self.no_song_tags = str(cnt)
-    #     await self.load_audio_only_without_lyrics()
-            
-    
-    # async def load_audio_only_without_lyrics(self):
-    #     async with async_session() as session:
-    #         cnt = await session.scalar(
-    #             select(func.count(Song.id))
-    #             .select_from(Song)
-    #             .where(Song.audio_only == True)
-    #             .where(Song.lrc_path == None)
-    #         )
-    #         self.audio_only_without_lyrics = str(cnt)
-
-    # def clear_no_song_artists(self):
-    #     asyncio.create_task(self._clear_no_song_artists())
-    
-    # async def _clear_no_song_artists(self):
-    #     async with async_session() as session:
-    #         await session.execute(
-    #             delete(Artist)
-    #             .where(Artist.id.in_(
-    #                 select(Artist.id)
-    #                 .outerjoin(song_artist_table, Artist.id == song_artist_table.c.artist_id)
-    #                 .where(song_artist_table.c.song_id == None)
-    #             ))
-    #         )
-    #         await session.commit()
-    #     await self.load_data()
-
-    # def clear_no_song_tags(self):
-    #     asyncio.create_task(self._clear_no_song_tags())
-
-    # async def _clear_no_song_tags(self):
-    #     async with async_session() as session:
-    #         await session.execute(
-    #             delete(Tag)
-    #             .where(Tag.id.in_(
-    #                 select(Tag.id)
-    #                 .outerjoin(song_tag_table, Tag.id == song_tag_table.c.tag_id)
-    #                 .where(song_tag_table.c.song_id == None)
-    #             ))
-    #         )
-    #         await session.commit()
-    #     await self.load_data()
+    def _on_manage_action(self, widget, action, *args):
+        call_async(action.action(widget, action), logger=logger)
     
     # def fetch_lyrics(self):
     #     if not self.fetch_lyrics_task:
@@ -224,6 +143,7 @@ class Row(BoxLayout):
     label = StringProperty()
     value = StringProperty()
     action_text = StringProperty()
+    
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

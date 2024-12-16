@@ -22,7 +22,8 @@ class EnhandedVideoFFPy(VideoFFPy):
 
     def load(self):
         super().load()
-        if self.filename.startswith('file:'):
+        if not self.filename.startswith('http'):
+            logger.info(f'ffprobe {self.filename}')
             probe = FFProbe(self.filename)
             self.videos = len(probe.video)
             self.audios = len(probe.audio)

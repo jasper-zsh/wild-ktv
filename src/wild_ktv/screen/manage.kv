@@ -16,4 +16,5 @@
         text: root.value
     Button:
         text: root.action_text
+        opacity: 1 if root.action_text != '' else 0
         on_release: root._on_action()
