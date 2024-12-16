@@ -51,10 +51,10 @@ class LocalProvider(BaseProvider):
                 id=s.id,
                 name=s.name,
                 artists=[Artist(id=a.id, name=a.name) for a in s.artists],
-                file_url=os.path.join(base_path, s.path),
+                file_url=os.path.join(base_path, s.path).replace('/', os.sep).replace('\\', os.sep),
                 tags=[Tag(id=t.id, name=t.name) for t in s.tags],
                 audio_only=s.audio_only,
-                lrc_path=os.path.join(base_path, s.lrc_path) if s.lrc_path else None,
+                lrc_path=os.path.join(base_path, s.lrc_path).replace('/', os.sep).replace('\\', os.sep) if s.lrc_path else None,
             ) for s in songs])
     
     async def get_song(self, song):
