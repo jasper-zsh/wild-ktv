@@ -10,6 +10,7 @@ from kivy.properties import StringProperty, BooleanProperty
 from kivy.uix.screenmanager import Screen
 
 from wild_ktv.config import Config
+from wild_ktv.video.video import Video
 from wild_ktv.uix.video import EnhancedVideo
 from wild_ktv.uix.lrc import LyricsView
 from wild_ktv.model import async_session, Song
@@ -28,13 +29,13 @@ Builder.load_file(os.path.join(os.path.dirname(__file__), 'player.kv'))
 class PlayerScreen(Screen):
     current_source = StringProperty()
     orig = BooleanProperty(True)
-    video: EnhancedVideo
+    video: Video
 
     def on_kv_post(self, base_widget):
         app = App.get_running_app()
-        self.video = app.video
-        self.video.bind(
-            loaded=self.on_video_loaded,
+        self.video = Video(controller=app.video_controller)
+        app.video_controller.bind(
+            on_load=self.on_video_load,
             position=self.on_position_updated,
         )
         self.ids.container.add_widget(self.video, 1)
@@ -43,15 +44,13 @@ class PlayerScreen(Screen):
     def on_position_updated(self, instance, value):
         self.lrc.position = value
     
-    def on_video_loaded(self, instance, value):
-        if not value:
-            return
+    def on_video_load(self, instance):
+        app = App.get_running_app()
         self.ids.container.remove_widget(self.video)
         self.ids.container.remove_widget(self.lrc)
-        if self.video.audio_only:
+        if app.video_controller.audio_only:
             logger.info('audio only, show lyrics')
             self.ids.container.add_widget(self.lrc, 1)
-            app = App.get_running_app()
             if len(app.playlist) > 0 and app.playlist[0].lrc_path:
                 self.lrc.file = app.playlist[0].lrc_path
             else:

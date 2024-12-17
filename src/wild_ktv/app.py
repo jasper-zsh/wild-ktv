@@ -15,6 +15,7 @@ from wild_ktv.uix.playlist import Playlist
 from wild_ktv.provider import BaseProvider, Song
 from wild_ktv.provider.igeba import IGebaProvider
 from wild_ktv.provider.local import LocalProvider
+from wild_ktv.video.controller import VideoController
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,8 @@ class WildKTVApp(App):
         # self.provider = IGebaProvider()
         self.provider = LocalProvider()
         self.playing = None
+        self.video_controller = VideoController()
+        
 
     def build(self):
         Window.fullscreen = 'auto'
@@ -101,4 +104,5 @@ class WildKTVApp(App):
 
     async def _play(self, song: Song):
         song = await self.provider.get_song(song)
-        self.video.source = song.file_url
+        # self.video.source = song.file_url
+        await self.video_controller.open(song.file_url, audio_only=song.audio_only)

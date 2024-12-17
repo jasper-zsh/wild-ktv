@@ -10,12 +10,10 @@
     BoxLayout:
         size_hint_y: None
         height: self.minimum_height
-        Button:
+        MenuButton:
             size: 80, 80
             size_hint: None, None
-            text: '播放器' if root.player_screen_state == 'main' else '菜单'
-            font_size: 20
-            on_release: app.to_player() if root.player_screen_state == 'main' else app.to_main()
+            in_player: not root.player_screen_state == 'main'
         BoxLayout:
             orientation: 'vertical'
             Label:

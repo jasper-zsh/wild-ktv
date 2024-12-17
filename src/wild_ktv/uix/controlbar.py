@@ -5,9 +5,11 @@ from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager
 from kivy.properties import ObjectProperty, StringProperty, BooleanProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import ButtonBehavior, Button
 from kivy.animation import Animation
 
 from wild_ktv.uix.video import EnhancedVideo
+from wild_ktv.video.video import Video
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +18,6 @@ Builder.load_file(os.path.join(os.path.dirname(__file__), 'controlbar.kv'))
 class ControlBar(BoxLayout):
     main_screen_manager = ObjectProperty(None)
     player_screen_state = StringProperty('main')
-    video: EnhancedVideo = ObjectProperty(None)
     song_name = StringProperty('请点歌')
     song_artist = StringProperty()
     
@@ -24,8 +25,7 @@ class ControlBar(BoxLayout):
         self.ids.chk_orig.bind(active=self.on_orig_changed)
         app = App.get_running_app()
         app.bind(playlist=self.on_playlist_changed)
-        self.video = app.video
-        self.video.bind(
+        app.video_controller.bind(
             loaded=self.on_video_loaded,
             position=self.on_position_changed,
             duration=self.on_duration_changed,
@@ -72,3 +72,27 @@ class ControlBar(BoxLayout):
         else:
             self.song_name = value[0].name
             self.song_artist = '/'.join([artist.name for artist in value[0].artists])
+
+class MenuButton(ButtonBehavior, BoxLayout):
+    in_player = BooleanProperty(False)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._btn = Button(text='菜单', font_size=20, on_release=self.on_release)
+        app = App.get_running_app()
+        self._img = Video(controller=app.video_controller)
+        self.in_player = True
+    
+    def on_in_player(self, instance, value):
+        self.clear_widgets()
+        if value:
+            self.add_widget(self._btn)
+        else:
+            self.add_widget(self._img)
+    
+    def on_release(self, *args):
+        app = App.get_running_app()
+        if app.main_screen_manager.current == 'main':
+            app.to_player()
+        else:
+            app.to_main()
