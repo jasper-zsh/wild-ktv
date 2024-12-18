@@ -15,6 +15,10 @@ dependencies = [
     "aiofiles>=24.1.0",
     "aiohttp>=3.11.10",
     "pyaes>=1.6.1",
+    "mpv>=1.0.7",
+    "qasync>=0.27.1",
+    "pyqt6>=6.8.0",
+    "pyqt6-fluent-widgets[full]>=1.7.3",
 ]
 readme = "README.md"
 requires-python = ">= 3.9"
@@ -29,6 +33,7 @@ dev-dependencies = [
     "flask>=3.1.0",
     "setuptools>=75.6.0",
     "snakeviz>=2.2.2",
+    "pyqtinspect>=0.3.6",
 ]
 
 [tool.hatch.metadata]

@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: Main",
+            "name": "Kivy",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/src/main.py",
@@ -13,12 +13,15 @@
             "args": ["-m", "inspector"]
         },
         {
-            "name": "Python Profiler: Main",
+            "name": "PyQt",
             "type": "debugpy",
             "request": "launch",
-            "module": "cProfile",
+            "module": "PyQtInspect",
+            "args": ["--direct", "--qt-support", "pyqt6", "--file", "${workspaceFolder}/src/run.py"],
             "console": "integratedTerminal",
-            "args": ["-o", "prof.bin", "${workspaceFolder}/src/main.py"]
+            "env": {
+                "QT_API": "pyqt6"
+            }
         }
     ]
 }
