@@ -1,11 +1,20 @@
 import asyncio
+from typing import Union
 
 from qfluentwidgets.components.widgets.frameless_window import FramelessWindow
 from qfluentwidgets.window.stacked_widget import StackedWidget
-from qfluentwidgets import SearchLineEdit, NavigationInterface, FluentIcon, FluentStyleSheet, FluentWindow, FluentTitleBar, NavigationItemPosition
+from qfluentwidgets.common.router import qrouter
+from qfluentwidgets import SearchLineEdit, NavigationInterface, FluentIcon, FluentIconBase, FluentStyleSheet, FluentWindow, FluentTitleBar, NavigationItemPosition
 from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QLabel, QFrame, QSizePolicy
+from PyQt6.QtGui import QIcon
 
+from wild_ktv.provider import FilterOptions, Song
 from wild_ktv.ui.control_bar import ControlBar
+from wild_ktv.ui.album_list import AlbumList
+from wild_ktv.ui.song_list import SongList
+from wild_ktv.ui.player_view import PlayerView
+
+from wild_ktv import share
 
 class MainView(QFrame):
     def __init__(self, parent=None):
@@ -25,7 +34,11 @@ class MainView(QFrame):
         self.controlBar = ControlBar(self)
         self.vBoxLayout.addWidget(self.controlBar)
 
-        self.mainStack.addWidget(QLabel('MainStack'))
+        self.albumList = AlbumList()
+        self.songList = SongList()
+        self.albumList.songsRequest.connect(self._onAlbumSongsRequest)
+        self.albumList.songsRequest.connect(self.songList.query)
+        self.songList.songClicked.connect(self._onSongClicked)
 
         self.initNavigation()
 
@@ -38,10 +51,42 @@ class MainView(QFrame):
         self.navigation.expand(False)
     
     def initNavigation(self):
-        self.navigation.addItem('albums', icon=FluentIcon.LIBRARY, text='歌单')
+        self.addSubInterface(self.albumList, FluentIcon.LIBRARY, text='歌单')
         self.navigation.addItem('artists', icon=FluentIcon.PEOPLE, text='歌手')
-        self.navigation.addItem('songs', icon=FluentIcon.MUSIC, text='歌曲')
+        self.addSubInterface(self.songList, icon=FluentIcon.MUSIC, text='歌曲')
         self.navigation.addItem('exit', icon=FluentIcon.CLOSE, text='退出', onClick=self.window().close, position=NavigationItemPosition.BOTTOM)
+
+    def addSubInterface(self, interface: QWidget, icon: Union[FluentIconBase, QIcon, str], text: str):
+        self.mainStack.addWidget(interface)
+        routeKey = interface.objectName()
+        item = self.navigation.addItem(
+            routeKey=routeKey,
+            icon=icon,
+            text=text,
+            onClick=lambda: self.switchTo(interface)
+        )
+
+        if self.mainStack.count() == 1:
+            self.mainStack.currentChanged.connect(self._onCurrentInterfaceChanged)
+            self.navigation.setCurrentItem(routeKey)
+            qrouter.setDefaultRouteKey(self.mainStack, routeKey)
+        
+        return item
+    
+    def switchTo(self, interface: QWidget):
+        self.mainStack.setCurrentWidget(interface, popOut=False)
+
+    def _onCurrentInterfaceChanged(self, index: int):
+        widget = self.mainStack.widget(index)
+        self.navigation.setCurrentItem(widget.objectName())
+        qrouter.push(self.mainStack, widget.objectName())
+    
+    def _onAlbumSongsRequest(self, filter_options: FilterOptions):
+        self.switchTo(self.songList)
+
+    def _onSongClicked(self, song: Song):
+        share.context.add_song_to_playlist(song)
+
 
 class MainWindow(FramelessWindow):
     def __init__(self, parent=None):
@@ -53,10 +98,20 @@ class MainWindow(FramelessWindow):
         self.rootStack = StackedWidget(self)
         self.hBoxLayout.addWidget(self.rootStack)
         self.mainView = MainView(self)
+        self.mainView.controlBar.togglePlayer.connect(self._togglePlayer)
+        self.playerView = PlayerView(self)
+        self.playerView.controlBar.togglePlayer.connect(self._togglePlayer)
         self.rootStack.addWidget(self.mainView)
+        self.rootStack.addWidget(self.playerView)
 
         self.hBoxLayout.setSpacing(0)
         self.hBoxLayout.setContentsMargins(0, 0, 0, 0)
 
         FluentStyleSheet.FLUENT_WINDOW.apply(self.rootStack)
+    
+    def _togglePlayer(self):
+        if self.rootStack.currentWidget() == self.mainView:
+            self.rootStack.setCurrentWidget(self.playerView)
+        else:
+            self.rootStack.setCurrentWidget(self.mainView)
         
