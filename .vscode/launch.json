@@ -28,7 +28,10 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/src/run.py",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "env": {
+                "QT_API": "pyqt6"
+            }
         },
     ]
 }

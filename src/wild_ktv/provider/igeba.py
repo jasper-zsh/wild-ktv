@@ -27,18 +27,13 @@ class ForwardServer:
         logger.info(f'got video length {info_res.content_length}')
         self.content_length = info_res.content_length
         self.cur = 0
-        for i in range(5):
+        for i in range(0):
             data = await self._forward_block()
             self.initials.append(data)
+        logger.info(f'forwarding on {self.get_forward_url()}')
     
     def get_forward_url(self):
         return f'tcp://{self.host}:{self.port}'
-
-    def close(self):
-        if self.server:
-            self.server.close()
-        if self.session:
-            asyncio.get_event_loop().run_until_complete(self.session.close())
 
     async def _forward_block(self):
         self.next = self.cur + 2097152
@@ -71,7 +66,8 @@ class ForwardServer:
                 return
         logger.info(f'forwarding finished {self.file_url}')
         writer.close()
-        self.close()
+        self.server.close()
+        await self.session.close()
 
 class IGebaProvider(BaseProvider):
     def __init__(self):

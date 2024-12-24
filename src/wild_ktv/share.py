@@ -1,13 +1,19 @@
 import logging
+from mpv import MPV, MpvRenderContext, MpvGlGetProcAddressFn
 
 from qasync import asyncSlot
 from PyQt6.QtCore import QObject, pyqtSignal, QUrl
+from PyQt6.QtWidgets import QWidget
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtCore import QIODevice, QFile
+from PyQt6.QtNetwork import QTcpSocket
+from PyQt6.QtGui import QOpenGLContext
 
 from wild_ktv.provider import BaseProvider, Song
 from wild_ktv.provider.igeba import IGebaProvider
 from wild_ktv.provider.local import LocalProvider
+
+import ctypes
 
 logger = logging.getLogger(__name__)
 
@@ -24,13 +30,29 @@ class SharedContext(QObject):
         self.playlist = []
         self.playing = None
         self.playlistChanged.connect(self._playlist_changed)
-        self.player = QMediaPlayer()
-        self.audio_output = QAudioOutput()
-        self.player.setAudioOutput(self.audio_output)
         self.orig = False
 
+        self.proc_wrapper = MpvGlGetProcAddressFn(self.gl_get_proc_addr)
+        
+        self.audio_output = QAudioOutput()
+        self.player = QMediaPlayer()
+        self.player.setAudioOutput(self.audio_output)
         self.player.mediaStatusChanged.connect(self._mediaStateChanged)
-        # self.player.errorOccurred.connect(self._mediaError)
+        self.player.playbackStateChanged.connect(lambda state: logger.info(f'playback state changed: {state}'))
+        self.player.errorOccurred.connect(self._mediaError)
+
+    def init_player(self):
+        self.mpv = MPV(
+            # vo='libmpv',
+            log_handler=print,
+            loglevel='debug'
+        )
+        self.mpv_ctx = MpvRenderContext(self.mpv, 'opengl', opengl_init_params={'get_proc_address': self.proc_wrapper})
+
+    def gl_get_proc_addr(self, _, name):
+        ctx = QOpenGLContext.globalShareContext()
+        addr = ctx.getProcAddress(name)
+        return ctypes.cast(int(addr), ctypes.c_void_p).value
 
     def add_song_to_playlist(self, song: Song):
         self.playlist.append(song)
@@ -78,15 +100,19 @@ class SharedContext(QObject):
     async def _play(self, song: Song):
         song = await self.provider.get_song(song)
         self.playing = song
-        if 'tcp:' in song.file_url:
-            url = QUrl(song.file_url)
-        else:
-            url = QUrl.fromLocalFile(song.file_url)
-        self.player.setSource(url)
-        # dev = QFile(song.file_url)
-        # if not dev.open(QIODevice.OpenModeFlag.ReadOnly):
-        #     logger.error(f'failed to open file {song.file_url}')
-        # self.player.setSourceDevice(dev)
+        self.mpv.play(song.file_url)
+        # if 'tcp:' in song.file_url:
+        #     # parts = song.file_url[5:].split(':')
+        #     # dev = SeekableTcpSocket()
+        #     # dev.connectToHost(parts[0], int(parts[1]))
+        #     # dev.waitForReadyRead()
+        #     # dev.seek(0)
+        #     # self.player.setSourceDevice(dev)
+        #     url = QUrl(song.file_url)
+        #     self.player.setSource(url)
+        # else:
+        #     url = QUrl.fromLocalFile(song.file_url)
+        #     self.player.setSource(url)
 
     def _stop(self):
         self.player.stop()
