@@ -13,7 +13,7 @@
             "args": ["-m", "inspector"]
         },
         {
-            "name": "PyQt",
+            "name": "PyQt inspect",
             "type": "debugpy",
             "request": "launch",
             "module": "PyQtInspect",
@@ -22,6 +22,13 @@
             "env": {
                 "QT_API": "pyqt6"
             }
-        }
+        },
+        {
+            "name": "PyQT",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/run.py",
+            "console": "integratedTerminal"
+        },
     ]
 }

@@ -1,4 +1,7 @@
 import os
+import logging
+import asyncio
+import aiofiles
 
 from sqlalchemy import select, func, delete
 from sqlalchemy.orm import selectinload
@@ -6,6 +9,9 @@ from sqlalchemy.orm import selectinload
 from . import BaseProvider, ManageAction, FilterOptions, Page, Artist, Song, Tag
 from wild_ktv.model import async_session, Artist as ArtistModel, Tag as TagModel, Song as SongModel, song_artist_table, song_tag_table
 from wild_ktv import config
+
+logger = logging.getLogger(__name__)
+
 
 class LocalProvider(BaseProvider):
     def _artist_filter_query(self, q, artist_filter: FilterOptions|None):

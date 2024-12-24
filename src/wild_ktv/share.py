@@ -1,9 +1,15 @@
+import logging
+
 from qasync import asyncSlot
 from PyQt6.QtCore import QObject, pyqtSignal, QUrl
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
+from PyQt6.QtCore import QIODevice, QFile
 
 from wild_ktv.provider import BaseProvider, Song
 from wild_ktv.provider.igeba import IGebaProvider
+from wild_ktv.provider.local import LocalProvider
+
+logger = logging.getLogger(__name__)
 
 class SharedContext(QObject):
     playlistChanged = pyqtSignal(list)
@@ -14,6 +20,7 @@ class SharedContext(QObject):
     def __init__(self):
         super().__init__()
         self.provider = IGebaProvider()
+        # self.provider = LocalProvider()
         self.playlist = []
         self.playing = None
         self.playlistChanged.connect(self._playlist_changed)
@@ -23,6 +30,7 @@ class SharedContext(QObject):
         self.orig = False
 
         self.player.mediaStatusChanged.connect(self._mediaStateChanged)
+        # self.player.errorOccurred.connect(self._mediaError)
 
     def add_song_to_playlist(self, song: Song):
         self.playlist.append(song)
@@ -54,19 +62,31 @@ class SharedContext(QObject):
         else:
             self._stop()
 
+    def _mediaError(self, error, error_string):
+        logger.error(f'error when play: {error_string}')
+
     def _mediaStateChanged(self, mediaState: QMediaPlayer.MediaStatus):
+        logger.info(f'media state changed: {mediaState}')
         match mediaState:
             case QMediaPlayer.MediaStatus.EndOfMedia:
                 self.playlist.pop(0)
                 self.playlistChanged.emit(self.playlist)
             case QMediaPlayer.MediaStatus.LoadedMedia:
-                self.set_orig(self.orig)
                 self.player.play()
+                self.set_orig(self.orig)
 
     async def _play(self, song: Song):
         song = await self.provider.get_song(song)
         self.playing = song
-        self.player.setSource(QUrl(song.file_url))
+        if 'tcp:' in song.file_url:
+            url = QUrl(song.file_url)
+        else:
+            url = QUrl.fromLocalFile(song.file_url)
+        self.player.setSource(url)
+        # dev = QFile(song.file_url)
+        # if not dev.open(QIODevice.OpenModeFlag.ReadOnly):
+        #     logger.error(f'failed to open file {song.file_url}')
+        # self.player.setSourceDevice(dev)
 
     def _stop(self):
         self.player.stop()
