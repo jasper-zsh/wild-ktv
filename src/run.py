@@ -33,7 +33,7 @@ async def run():
     window = MainWindow()
     window.show()
 
-    share.context.init_player()
+    share.context.player.init()
 
     await app_close_event.wait()
 

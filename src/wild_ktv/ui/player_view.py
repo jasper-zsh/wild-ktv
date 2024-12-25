@@ -11,7 +11,7 @@ class MPVWidget(QOpenGLWidget):
     
     def initializeGL(self):
         super().initializeGL()
-        share.context.mpv_ctx.update_cb = self.on_update
+        share.context.player.ctx.update_cb = self.on_update
 
     @pyqtSlot()
     def maybe_update(self):
@@ -30,7 +30,7 @@ class MPVWidget(QOpenGLWidget):
         #     ratio = handle.devicePixelRatio()
         #     w = int(self.width() * ratio)
         #     h = int(self.height() * ratio)
-        share.context.mpv_ctx.render(flip_y=True, opengl_fbo={
+        share.context.player.ctx.render(flip_y=True, opengl_fbo={
             'w': self.width(),
             'h': self.height(),
             'fbo': self.defaultFramebufferObject(),

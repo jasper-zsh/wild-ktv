@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy
 from PyQt6.QtCore import Qt, pyqtSignal
-from qfluentwidgets import PushButton, ToolButton, PrimaryToolButton, FluentIcon, Slider, SwitchButton, IconWidget
+from qfluentwidgets import PushButton, ToolButton, PrimaryToolButton, FluentIcon, Slider, SwitchButton, IconWidget, ProgressBar
 
 from wild_ktv import share
 from wild_ktv.provider import Song
@@ -13,6 +13,13 @@ class ControlBar(QWidget):
 
         self.vBoxLayout = QVBoxLayout(self)
         self.mainBoxLayout = QHBoxLayout()
+
+        self.progress = ProgressBar()
+        self.vBoxLayout.addWidget(self.progress)
+        self.progress.setMinimum(0)
+        share.context.player.durationChanged.connect(lambda duration: self.progress.setMaximum(int(duration*1000)))
+        share.context.player.positionChanged.connect(lambda position: self.progress.setValue(int(position*1000)))
+
         self.vBoxLayout.addLayout(self.mainBoxLayout)
 
         self.btnPlayer = PushButton('播放器')
@@ -37,7 +44,7 @@ class ControlBar(QWidget):
         self.sliderVolume.setFixedWidth(100)
         self.sliderVolume.setMaximum(100)
         self.sliderVolume.setMinimum(0)
-        self.sliderVolume.setValue(int(share.context.audio_output.volume()*100))
+        # self.sliderVolume.setValue(int(share.context.audio_output.volume()*100))
         self.mainBoxLayout.addWidget(self.sliderVolume)
         self.btnReplay = ToolButton(FluentIcon.ROTATE)
         self.mainBoxLayout.addWidget(self.btnReplay)
@@ -49,14 +56,15 @@ class ControlBar(QWidget):
         self.mainBoxLayout.addWidget(self.chkOrig)
 
         share.context.playlistChanged.connect(self._playlistChanged)
+
         share.context.player.playingChanged.connect(self._playingChanged)
-        share.context.audio_output.volumeChanged.connect(lambda v: self.sliderVolume.setValue(int(v*100)))
-        self.sliderVolume.valueChanged.connect(lambda v: share.context.audio_output.setVolume(v/100.0))
+        share.context.player.volumeChanged.connect(lambda v: self.sliderVolume.setValue(v))
+        self.sliderVolume.valueChanged.connect(lambda v: share.context.player.setVolume(v))
         self.btnPlay.clicked.connect(self._playClicked)
         share.context.origChanged.connect(lambda orig: self.chkOrig.setChecked(orig))
         self.chkOrig.checkedChanged.connect(lambda orig: share.context.set_orig(orig))
         self.btnSkip.clicked.connect(lambda: share.context.next_song())
-        self.btnReplay.clicked.connect(lambda: share.context.player.setPosition(0))
+        self.btnReplay.clicked.connect(lambda: share.context.player.seek(0.))
     
     def _togglePlayer(self):
         self.togglePlayer.emit()
