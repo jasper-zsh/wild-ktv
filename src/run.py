@@ -31,7 +31,8 @@ async def run():
     share.init()
 
     window = MainWindow()
-    window.show()
+    # window.show()
+    window.showFullScreen()
 
     share.context.player.init()
 

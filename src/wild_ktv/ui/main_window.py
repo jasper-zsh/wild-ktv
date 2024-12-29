@@ -14,6 +14,7 @@ from wild_ktv.ui.album_list import AlbumList
 from wild_ktv.ui.song_list import SongList
 from wild_ktv.ui.artist_list import ArtistList
 from wild_ktv.ui.player_view import PlayerView
+from wild_ktv.ui.search_view import SearchView
 
 from wild_ktv import share
 
@@ -38,11 +39,18 @@ class MainView(QFrame):
         self.albumList = AlbumList()
         self.songList = SongList()
         self.artistList = ArtistList()
+        self.searchView = SearchView()
         self.albumList.songsRequest.connect(self.songList.query)
         self.albumList.songsRequest.connect(lambda: self.switchTo(self.songList))
         self.artistList.songsRequest.connect(self.songList.query)
         self.artistList.songsRequest.connect(lambda: self.switchTo(self.songList))
         self.songList.songClicked.connect(lambda song: share.context.add_song_to_playlist(song))
+        self.searchEdit.searchSignal.connect(self.searchView.search)
+        self.searchEdit.searchSignal.connect(lambda: self.switchTo(self.searchView))
+        self.searchEdit.returnPressed.connect(self.searchEdit.search)
+        self.searchView.songsRequest.connect(self.songList.query)
+        self.searchView.songsRequest.connect(lambda: self.switchTo(self.songList))
+        self.searchView.songClicked.connect(lambda song: share.context.add_song_to_playlist(song))
 
         self.initNavigation()
 
@@ -58,6 +66,7 @@ class MainView(QFrame):
         self.addSubInterface(self.albumList, FluentIcon.LIBRARY, text='歌单')
         self.addSubInterface(self.artistList, FluentIcon.PEOPLE, text='歌手')
         self.addSubInterface(self.songList, icon=FluentIcon.MUSIC, text='歌曲')
+        self.addSubInterface(self.searchView, icon=FluentIcon.SEARCH, text='搜索')
         self.navigation.addItem('exit', icon=FluentIcon.CLOSE, text='退出', onClick=self.window().close, position=NavigationItemPosition.BOTTOM)
 
     def addSubInterface(self, interface: QWidget, icon: Union[FluentIconBase, QIcon, str], text: str):

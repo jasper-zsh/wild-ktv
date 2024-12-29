@@ -62,7 +62,6 @@ class ForwardServer:
             except:
                 logger.info(f'client connection close for {self.file_url}')
                 writer.close()
-                self.close()
                 return
         logger.info(f'forwarding finished {self.file_url}')
         writer.close()
